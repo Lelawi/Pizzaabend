@@ -96,6 +96,7 @@ details[open] summary::after{content:" ▴"}
 .catgroup summary{padding:2px 0 6px}
 .catgroup ul.list li{align-items:flex-start}
 .catgroup .btn{flex:0 0 auto}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
 .btns{display:flex;gap:6px;flex:0 0 auto}
 .st{font-size:13px;flex:0 1 auto;max-width:45%;text-align:right;padding-top:2px}
 .st.ok{color:var(--basil);font-weight:600}
@@ -404,9 +405,9 @@ function groupByCat(list){
 // ---------- Gastgeber-Bereich ----------
 function renderAdminBox(){
   document.getElementById("adminBox").innerHTML = isAdmin ? `<div class="card admin">
-    <div class="row" style="align-items:center"><div><span class="badge">Gastgeber-Modus</span></div>
-    <button class="btn small shrink" id="newEvBtn">+ Neuer Termin</button>
-    <button class="btn ghost small shrink" id="logoutBtn">Abmelden</button></div>
+    <div class="actions" style="align-items:center"><span class="badge" style="margin-right:auto">Gastgeber-Modus</span>
+    <button class="btn small" id="newEvBtn">+ Neuer Termin</button>
+    <button class="btn ghost small" id="logoutBtn">Abmelden</button></div>
     ${editing ? eventForm(editing === "new" ? null : events.find(e => e.id === editing)) : ""}
   </div>` : "";
 }
@@ -419,9 +420,9 @@ function eventForm(ev){
     <div><label>Plätze</label><input type="number" id="fMax" min="1" max="40" value="${ev?.max_guests || 8}"></div></div>
     <div class="mt"><label>Infos für alle (optional)</label><textarea id="fNotes" placeholder="z. B. Teig mache ich, bringt Belag mit!">${esc(ev?.notes || "")}</textarea></div>
     ${ev ? `<label class="mt" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="fClosed" style="width:auto" ${ev.closed?"checked":""}> Anmeldung schließen</label>` : ""}
-    <div class="row mt"><button class="btn" id="saveEvBtn" data-id="${ev?.id || ""}">Speichern</button>
-    <button class="btn ghost shrink" id="cancelEvBtn">Abbrechen</button>
-    ${ev ? `<button class="btn ghost shrink" style="color:var(--danger)" id="delEvBtn" data-id="${ev.id}">Löschen</button>` : ""}</div></div>`;
+    <div class="actions mt"><button class="btn" id="saveEvBtn" data-id="${ev?.id || ""}">Speichern</button>
+    <button class="btn ghost" id="cancelEvBtn">Abbrechen</button>
+    ${ev ? `<button class="btn ghost" style="color:var(--danger);margin-left:auto" id="delEvBtn" data-id="${ev.id}">Löschen</button>` : ""}</div></div>`;
 }
 function adminEventCard(ev){
   return `<div class="card admin"><h2>Für diesen Termin</h2>
