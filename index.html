@@ -488,7 +488,8 @@ function planFor(ev){
   const { used } = seatSplit(ev);
   const hosts = ev.host && /&|\bund\b|,/.test(ev.host) ? 2 : 1;
   const final = ev.closed || isPast(ev);      // Anmeldung geschlossen: echte Gästezahl, sonst alle Plätze
-  return { people: (final ? used : Math.max(used, ev.max_guests)) + hosts, final };
+  const guests = final ? used : Math.max(used, ev.max_guests);
+  return { people: guests + hosts, guests, hosts, final };
 }
 function parseQty(q, m){
   if(!q) return null;
@@ -630,7 +631,7 @@ function zutatenCard(ev, open){
       <ul class="items">${stray.map(i => itemRow({ icon: CAT_ICON[i.category] || "🧺", name: i.name + (i.qty && i.kind !== "vorrat" ? ` · ${i.qty}` : ""), st: customState(i), idx:null, ev, open, extra:i })).join("")}</ul></details>` : "";
 
   return `<div class="card">
-    <div class="zhead"><h2>Zutaten</h2><span class="zsum">${PLAN ? `geplant für ${PLAN.people} ${PLAN.people === 1 ? "Person" : "Personen"}${PLAN.final ? "" : " (alle Plätze)"}` : "Tippe an, was du mitbringst"}</span></div>
+    <div class="zhead"><h2>Zutaten</h2><span class="zsum">${PLAN ? `geplant für ${PLAN.people} ${PLAN.people === 1 ? "Person" : "Personen"} (${PLAN.final ? `${PLAN.guests} ${PLAN.guests === 1 ? "Gast" : "Gäste"}` : `${PLAN.guests} Plätze`} + ${PLAN.hosts === 2 ? "2 Gastgeber" : "Gastgeber"})` : "Tippe an, was du mitbringst"}</span></div>
     ${isAdmin && ev && open ? `<div class="actions" style="margin-top:8px"><button class="btn ghost small" id="missBtn">📋 Was fehlt – in WhatsApp</button></div>` : ""}
     <div class="basics" aria-label="Basis-Zutaten">${basicsHtml}</div>
     ${smart && smart.hints.length ? `<ul class="hints">${smart.hints.map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
