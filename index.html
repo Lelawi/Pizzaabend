@@ -52,6 +52,7 @@ h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:20px;margin:0}
 .when-row .btn{flex:0 0 auto}
 .when{font-family:Fraunces,Georgia,serif;font-size:24px;font-weight:800;margin:0;line-height:1.15}
 .time{color:var(--muted);margin:2px 0 0;font-size:15px}
+.host{margin:6px 0 0;font-size:15px;font-weight:600;color:var(--crust)}
 .seats{display:flex;align-items:center;gap:10px;margin:12px 0 0;flex-wrap:wrap}
 .dots{display:flex;flex-wrap:wrap;gap:4px}
 .dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
@@ -250,7 +251,7 @@ const isPast = e => new Date(e.event_date + "T00:00") < today;
 
 async function load(force){
   const [ev, su, it] = await Promise.all([
-    api("pz_events?select=id,event_date,event_time,title,max_guests,notes,closed&order=event_date.asc"),
+    api("pz_events?select=id,event_date,event_time,title,max_guests,notes,closed,host&order=event_date.asc"),
     api("pz_signups?select=id,event_id,name,created_at&order=created_at.asc"),
     api("pz_items?select=id,event_id,name,category,qty,kind,person,created_at&order=created_at.asc")
   ]);
@@ -323,7 +324,8 @@ function eventCard(ev){
     ${isPast(ev) ? '<span class="pill" style="margin-bottom:8px">vergangen</span>' : ev.closed ? '<span class="pill" style="margin-bottom:8px">Anmeldung geschlossen</span>' : ''}
     <div class="when-row">
       <div><p class="when">${esc(fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'}))}</p>
-      <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}</p></div>
+      <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}</p>
+      ${ev.host ? `<p class="host">🧑‍🍳 Gastgeber: ${esc(ev.host)}</p>` : ""}</div>
       ${isAdmin ? `<button class="btn ghost small" data-edit-ev="${ev.id}">✎ Bearbeiten</button>` : ""}
     </div>
     <div class="seats"><div class="dots">${Array.from({length:ev.max_guests},(_,i)=>`<span class="dot ${i<confirmed.length?'full':''}"></span>`).join("")}</div>
@@ -444,7 +446,7 @@ function zutatenCard(ev, open){
   return `<div class="card">
     <div class="zhead"><h2>Zutaten</h2><span class="zsum">${totalNeeded ? `${totalNeeded} wird noch gebraucht` : "Tippe an, was du mitbringst"}</span></div>
     <div class="basics" aria-label="Basis-Zutaten">${basicsHtml}</div>
-    <details class="tip" data-key="tip" ${isOpen("tip", false) ? "open" : ""}><summary>💧 Tipp: Je trockener der Belag, desto besser ▾</summary>
+    <details class="tip" data-key="tip" ${isOpen("tip", false) ? "open" : ""}><summary>💧 Tipp: Je trockener, desto besser ▾</summary>
       <p>Im heißen Ofen verdampft Wasser nicht schnell genug, der Boden wird matschig. Also lieber Pizza-Mozzarella am Stück als Kugeln aus der Lake (die gut abtropfen lassen), Dosenware abtropfen, Gemüse dünn schneiden. Frisches wie Rucola, Burrata oder Rohschinken erst nach dem Backen drauf.</p></details>
     ${groupsHtml}${otherHtml}${custom}
   </div>`;
@@ -464,7 +466,9 @@ function eventForm(ev){
   return `<div class="mt"><h2 style="margin-bottom:10px">${ev ? "Termin bearbeiten" : "Neuer Termin"}</h2>
     <div class="grid2"><div><label for="fDate">Datum</label><input type="date" id="fDate" value="${esc(d)}"></div>
     <div><label for="fTime">Uhrzeit</label><input type="time" id="fTime" value="${esc(ev?.event_time || "19:00")}"></div></div>
-    <div class="grid2 mt"><div><label for="fTitle">Titel</label><input id="fTitle" value="${esc(ev?.title || "Pizzaabend")}" maxlength="60"></div>
+    <div class="mt"><label for="fHost">Gastgeber</label><input id="fHost" list="hostList" value="${esc(ev?.host || "")}" placeholder="z. B. Lars, Mary oder Lars &amp; Mary" maxlength="60">
+      <datalist id="hostList"><option value="Lars"><option value="Mary"><option value="Lars &amp; Mary"></datalist></div>
+    <div class="grid2 mt"><div><label for="fTitle">Titel</label><input id="fTitle" value="${esc(ev?.title || "Pizzaabend")}" placeholder="z. B. Mädelsabend" maxlength="60"></div>
     <div><label for="fMax">Plätze</label><input type="number" id="fMax" min="1" max="40" value="${ev?.max_guests || 8}"></div></div>
     <div class="mt"><label for="fNotes">Infos für alle (optional)</label><textarea id="fNotes" placeholder="z. B. Teig mache ich, bringt Belag mit!">${esc(ev?.notes || "")}</textarea></div>
     ${ev ? `<label class="mt" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="fClosed" style="width:auto" ${ev.closed?"checked":""}> Anmeldung schließen</label>` : ""}
@@ -523,7 +527,8 @@ document.addEventListener("click", async (e) => {
     return act(async()=>{
       const newId = await rpc("pz_admin_save_event",{p_key:adminKey,p_id:id,p_date:date,p_time:document.getElementById("fTime").value,
         p_title:document.getElementById("fTitle").value,p_max:parseInt(document.getElementById("fMax").value)||8,
-        p_notes:document.getElementById("fNotes").value,p_closed:!!document.getElementById("fClosed")?.checked});
+        p_notes:document.getElementById("fNotes").value,p_closed:!!document.getElementById("fClosed")?.checked,
+        p_host:document.getElementById("fHost").value});
       selected = newId; editing = false;
     }, "Termin gespeichert"); }
   if(t.id === "delEvBtn"){ if(!confirm("Termin mit allen Anmeldungen und Einträgen löschen?")) return;
