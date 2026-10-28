@@ -89,6 +89,16 @@ details summary::-webkit-details-marker{display:none}
 details summary::after{content:" ▾";color:var(--muted)}
 details[open] summary::after{content:" ▴"}
 .share{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.catgroup{border-top:1px solid var(--line);padding:12px 0 4px}
+.catgroup:first-of-type{border-top:0}
+.catgroup summary{padding:2px 0 6px}
+.catgroup ul.list li{align-items:flex-start}
+.catgroup .btn{flex:0 0 auto}
+.btns{display:flex;gap:6px;flex:0 0 auto}
+.st{font-size:13px;flex:0 1 auto;max-width:45%;text-align:right;padding-top:2px}
+.st.ok{color:var(--basil);font-weight:600}
+li.covered .t{color:var(--muted)}
+.need-tag{background:var(--cheese-soft);color:var(--crust);font-size:11px;vertical-align:middle;margin-left:4px}
 footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0}
 footer a{color:inherit}
 @media (max-width:420px){.grid2{grid-template-columns:1fr}}
@@ -232,14 +242,16 @@ function render(){
   const bring = evItems.filter(i => i.kind === "mitbringsel");
 
   html += `<div class="card"><h2>Zutaten</h2>
+    <p class="notes"><strong>Faustregel: Je trockener der Belag, desto besser die Pizza.</strong> Im heißen Ofen verdampft Wasser nicht schnell genug, der Boden wird matschig. Also lieber Pizza-Mozzarella am Stück als Kugeln aus der Lake (die gut abtropfen lassen), Dosenware abtropfen, Gemüse dünn schneiden. Frisches wie Rucola, Burrata oder Rohschinken erst nach dem Backen drauf.</p>
     <h3>Wird noch gebraucht</h3>
     ${need.length ? `<ul class="list need">${need.map(i => needLi(i, open)).join("")}</ul>` : `<p class="empty">Nichts Bestimmtes – bring gern mit, worauf du Lust hast.</p>`}
     <h3>Ist schon da</h3>
     ${have.length ? `<ul class="list have">${have.map(i => haveLi(i)).join("")}</ul>` : `<p class="empty">Noch nichts eingetragen.</p>`}
     <h3>Bringen Gäste mit</h3>
     ${bring.length ? groupByCat(bring).map(([cat, list]) => `<p class="muted" style="margin:10px 0 2px;font-weight:600">${esc(cat)}</p><ul class="list">${list.map(i => bringLi(i, open)).join("")}</ul>`).join("") : `<p class="empty">Noch nichts – trag ein, was du mitbringst.</p>`}
+    ${catalogBlock(ev, open, [...have, ...need, ...bring])}
     ${open ? `<div class="mt" style="border-top:1px solid var(--line);padding-top:14px">
-      <label>Ich bringe mit …</label>
+      <label>Etwas anderes mitbringen</label>
       <div class="row"><input id="itName" placeholder="z. B. Salami, Rucola, Bier" maxlength="60"></div>
       <div class="grid2 mt">
         <div><label for="itQty">Menge (optional)</label><input id="itQty" placeholder="z. B. 200 g, 6 Fl." maxlength="30"></div>
@@ -251,6 +263,111 @@ function render(){
 
   if(isAdmin) html += adminEventCard(ev) + vorratCard(ev);
   main.innerHTML = html;
+}
+
+// ---------- Vorschlagsliste ----------
+// k = Suchbegriffe, um vorhandene Einträge zu erkennen; x = Begriffe, die NICHT zählen
+const CATALOG = [
+  { group: "Basis – sollte immer da sein", open: true, items: [
+    { n: "Pizzateig", c: "Teig & Mehl", k: ["teig"], t: "Ca. 250 g pro Pizza" },
+    { n: "Tomatensauce", c: "Sauce", k: ["tomatensauce","tomatensoße","tomatensosse","passata","pelati","san marzano"], t: "Lieber dick als wässrig – San-Marzano-Tomaten oder dicke Passata" },
+    { n: "Mozzarella", c: "Käse", k: ["mozzarella","pizzakäse"], x: ["burrata"], t: "Pizza-Mozzarella am Stück oder gerieben ist ideal. Kugeln aus der Lake gut abtropfen, am besten schon am Vortag" },
+    { n: "Hartweizengrieß", c: "Teig & Mehl", k: ["grieß","griess","semola"], t: "Zum Ausrollen und für die Schaufel, damit nichts klebt" },
+    { n: "Olivenöl", c: "Sonstiges", k: ["olivenöl","olivenoel"] },
+    { n: "Frisches Basilikum", c: "Gemüse & Kräuter", k: ["basilikum"], t: "Erst nach dem Backen drauf" },
+    { n: "Parmesan", c: "Käse", k: ["parmesan","grana","pecorino"], t: "Nach dem Backen drüberhobeln" }
+  ]},
+  { group: "Käse", items: [
+    { n: "Fior di Latte", c: "Käse", k: ["fior di latte"], t: "Sehr feucht: zupfen und 1–2 Stunden abtropfen lassen" },
+    { n: "Burrata", c: "Käse", k: ["burrata"], t: "Erst nach dem Backen drauf" },
+    { n: "Scamorza (geräuchert)", c: "Käse", k: ["scamorza"], t: "Trocken und rauchig, schmilzt super" },
+    { n: "Gorgonzola", c: "Käse", k: ["gorgonzola"] },
+    { n: "Ziegenkäse", c: "Käse", k: ["ziegenkäse"] }
+  ]},
+  { group: "Fleisch & Fisch", items: [
+    { n: "Salami", c: "Belag", k: ["salami","spianata","pepperoni-salami"], t: "Scharfe Spianata ist der Klassiker" },
+    { n: "Rohschinken (Prosciutto)", c: "Belag", k: ["prosciutto crudo","rohschinken","parmaschinken","serrano","prosciutto"], x: ["cotto"], t: "Erst nach dem Backen drauf" },
+    { n: "Kochschinken", c: "Belag", k: ["kochschinken","prosciutto cotto"] },
+    { n: "’Nduja", c: "Belag", k: ["nduja"], t: "Scharfe Streichsalami, kleine Kleckse reichen" },
+    { n: "Thunfisch", c: "Belag", k: ["thunfisch"], t: "Sehr gut abtropfen lassen" },
+    { n: "Sardellen", c: "Belag", k: ["sardelle"] },
+    { n: "Garnelen", c: "Belag", k: ["garnele","shrimp","scampi"], t: "Trocken tupfen, sie geben sonst Wasser ab" }
+  ]},
+  { group: "Gemüse", items: [
+    { n: "Champignons", c: "Gemüse & Kräuter", k: ["champignon","pilze"], t: "Hauchdünn schneiden, sie geben viel Wasser ab" },
+    { n: "Zwiebeln", c: "Gemüse & Kräuter", k: ["zwiebel"] },
+    { n: "Paprika", c: "Gemüse & Kräuter", k: ["paprika"] },
+    { n: "Kirschtomaten", c: "Gemüse & Kräuter", k: ["kirschtomate","cherrytomate","cocktailtomate"], t: "Halbieren und die Kerne raus" },
+    { n: "Oliven", c: "Gemüse & Kräuter", k: ["olive"], x: ["olivenöl","olivenoel"] },
+    { n: "Rucola", c: "Gemüse & Kräuter", k: ["rucola","rauke"], t: "Erst nach dem Backen drauf" },
+    { n: "Spinat", c: "Gemüse & Kräuter", k: ["spinat"], t: "Gut ausdrücken" },
+    { n: "Artischocken", c: "Gemüse & Kräuter", k: ["artischocke"], t: "Gut abtropfen lassen" },
+    { n: "Zucchini", c: "Gemüse & Kräuter", k: ["zucchini"], t: "Dünn hobeln" },
+    { n: "Peperoni / Jalapeños", c: "Gemüse & Kräuter", k: ["peperoni","jalape"] },
+    { n: "Mais", c: "Gemüse & Kräuter", k: ["mais"], t: "Abtropfen lassen" },
+    { n: "Kapern", c: "Gemüse & Kräuter", k: ["kapern"] },
+    { n: "Knoblauch", c: "Gemüse & Kräuter", k: ["knoblauch"] }
+  ]},
+  { group: "Extras zum Verfeinern", items: [
+    { n: "Oregano", c: "Gemüse & Kräuter", k: ["oregano"] },
+    { n: "Chiliöl / Chiliflocken", c: "Sonstiges", k: ["chili"] },
+    { n: "Honig", c: "Sonstiges", k: ["honig"], t: "Passt super zu Salami oder Gorgonzola" },
+    { n: "Pesto", c: "Sauce", k: ["pesto"] }
+  ]},
+  { group: "Getränke", items: [
+    { n: "Bier", c: "Getränke", k: ["bier"] },
+    { n: "Wein", c: "Getränke", k: ["wein"] },
+    { n: "Softdrinks", c: "Getränke", k: ["softdrink","limo","cola","spezi","saft"] },
+    { n: "Wasser", c: "Getränke", k: ["wasser"] }
+  ]},
+  { group: "Nachtisch", items: [
+    { n: "Nutella", c: "Dessert", k: ["nutella"], t: "Für eine Dessert-Pizza" },
+    { n: "Nachtisch (z. B. Tiramisu)", c: "Dessert", k: ["tiramisu","dessert","nachtisch"] }
+  ]}
+];
+const CAT_FLAT = CATALOG.flatMap(g => g.items);
+
+function catMatch(entry, pool){
+  return pool.filter(i => {
+    const n = i.name.toLowerCase();
+    if((entry.x || []).some(x => n.includes(x))) return false;
+    return entry.k.some(k => n.includes(k));
+  });
+}
+function catStatus(entry, pool){
+  const hits = catMatch(entry, pool);
+  const have = hits.find(i => i.kind === "vorrat");
+  if(have) return { kind: "have", label: "ist da" + (have.qty ? ` · ${have.qty}` : "") };
+  const bring = hits.filter(i => i.kind === "mitbringsel" || (i.kind === "bedarf" && i.person));
+  if(bring.length) return { kind: "bring", label: "bringt " + bring.map(i => i.person).join(", ") };
+  const need = hits.find(i => i.kind === "bedarf");
+  if(need) return { kind: "need", item: need };
+  return { kind: "free" };
+}
+function catalogBlock(ev, open, pool){
+  if(!open && !isAdmin) return "";
+  const groups = CATALOG.map(g => {
+    const rows = g.items.map(entry => {
+      const idx = CAT_FLAT.indexOf(entry);
+      const st = catStatus(entry, pool);
+      let right = "";
+      if(st.kind === "have") right = `<span class="st ok">✓ ${esc(st.label)}</span>`;
+      else if(st.kind === "bring") right = `<span class="st ok">${esc(st.label)}</span>`;
+      else if(isAdmin) right = `<span class="btns"><button class="btn ghost small" data-cat-have="${idx}">Ist da</button>${open ? `<button class="btn ghost small" data-cat-need="${idx}">Gebraucht</button>` : ""}</span>`;
+      else if(open) right = st.kind === "need"
+        ? `<button class="btn small" data-claim="${st.item.id}">Bringe ich</button>`
+        : `<button class="btn ghost small" data-cat-bring="${idx}">Bringe ich</button>`;
+      const flag = st.kind === "need" ? ' <span class="tag need-tag">wird gebraucht</span>' : "";
+      return `<li class="${st.kind === "have" || st.kind === "bring" ? "covered" : ""}"><div class="li-main"><div class="t">${esc(entry.n)}${flag}</div>${entry.t ? `<div class="s">${esc(entry.t)}</div>` : ""}</div>${right}</li>`;
+    }).join("");
+    const done = g.items.filter(e => ["have","bring"].includes(catStatus(e, pool).kind)).length;
+    return `<details class="catgroup" ${g.open ? "open" : ""}><summary>${esc(g.group)} <span class="muted" style="font-weight:400">· ${done}/${g.items.length} abgedeckt</span></summary><ul class="list">${rows}</ul></details>`;
+  }).join("");
+  return `<div class="mt" style="border-top:1px solid var(--line);padding-top:14px">
+    <h3 style="margin-top:0">Zum Antippen – was bringst du mit?</h3>
+    <p class="muted" style="margin:0 0 6px">${isAdmin ? "Als Gastgeber: markiere, was da ist oder was gebraucht wird." : "Einfach auf „Bringe ich“ tippen. Was schon da ist oder jemand bringt, ist abgehakt."}</p>
+    ${groups}
+  </div>`;
 }
 
 function guestLi(g, n, open){
@@ -351,6 +468,12 @@ document.addEventListener("click", async (e) => {
   if(t.dataset.rm){ return act(async()=>{ await rpc("pz_remove_item",{p_id:t.dataset.rm,p_token:tokens[t.dataset.rm]}); dropToken(t.dataset.rm); }, "Gelöscht"); }
   if(t.dataset.claim){ const n = needName(); if(!n) return;
     return act(async()=>{ const r = await rpc("pz_claim",{p_id:t.dataset.claim,p_person:n}); saveToken(r.id, r.token); }, "Danke, ist notiert!"); }
+  if(t.dataset.catBring){ const n = needName(); if(!n) return; const c = CAT_FLAT[+t.dataset.catBring];
+    return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:c.n,p_category:c.c,p_qty:"",p_person:n}); saveToken(r.id, r.token); }, `Danke! ${c.n} ist eingetragen`); }
+  if(t.dataset.catHave){ const c = CAT_FLAT[+t.dataset.catHave];
+    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:null,p_kind:"vorrat",p_name:c.n,p_category:c.c,p_qty:""}), `${c.n} steht im Vorrat`); }
+  if(t.dataset.catNeed){ const c = CAT_FLAT[+t.dataset.catNeed];
+    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:ev.id,p_kind:"bedarf",p_name:c.n,p_category:c.c,p_qty:""}), `${c.n} als gebraucht markiert`); }
   if(t.dataset.unclaim){ return act(async()=>{ await rpc("pz_unclaim",{p_id:t.dataset.unclaim,p_token:tokens[t.dataset.unclaim]}); dropToken(t.dataset.unclaim); }, "Wieder freigegeben"); }
 
   if(t.id === "waBtn" || t.id === "copyBtn"){
