@@ -605,7 +605,7 @@ document.addEventListener("click", async (e) => {
   if(t.id === "hostLink"){ e.preventDefault(); return hostLogin(); }
 
   if(t.id === "joinBtn"){ const n = needName(); if(!n) return;
-    return act(async()=>{ const r = await rpc("pz_join",{p_event:ev.id,p_name:n,p_plus:joinPlus,p_diet:joinDiet||null}); saveToken(r.id, r.token); joinPlus = 0; joinDiet = ""; }, "Du bist dabei 🍕 – tippe unten an, was du mitbringst"); }
+    return act(async()=>{ const r = await rpc("pz_join2",{p_event:ev.id,p_name:n,p_plus:joinPlus,p_diet:joinDiet||null}); saveToken(r.id, r.token); joinPlus = 0; joinDiet = ""; }, "Du bist dabei 🍕 – tippe unten an, was du mitbringst"); }
   if(t.dataset.opt){
     const o = t.dataset.opt, who = t.dataset.who;
     const cur = who === "join" ? { plus: joinPlus, diet: joinDiet } : (() => { const g = signups.find(x => x.id === who); return { plus: g?.plus || 0, diet: g?.diet || "" }; })();
