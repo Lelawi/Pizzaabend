@@ -428,7 +428,9 @@ function smartInfo(ev, pool, others){
   }
   const veg = confirmed.filter(g => g.diet).length;
   if(veg && levels.gemuese.amount < Math.max(2, veg)) hints.push(`🥦 ${veg} ${veg === 1 ? "Gast isst" : "Gäste essen"} vegetarisch – Gemüse-Belag ist noch knapp`);
-  if(used >= 3 && levels.getraenke.level === "low") hints.push(`🥤 Erst ${levels.getraenke.amount}× Getränke zugesagt – bringt gern jeder etwas für sich mit`);
+  if(used >= 3 && levels.getraenke.level === "low") hints.push(levels.getraenke.amount
+    ? `🥤 Erst ${levels.getraenke.amount}× Getränke zugesagt – bringt gern jeder etwas für sich mit`
+    : `🥤 Noch keine Getränke zugesagt – bringt gern jeder etwas für sich mit`);
 
   // Schnell-Vorschläge: zuerst was der Gastgeber braucht, dann fehlende Basics, dann knappe Gruppen
   const sugg = [];
@@ -439,7 +441,13 @@ function smartInfo(ev, pool, others){
   const vegGuests = confirmed.filter(g => g.diet).length;
   const lowGroups = CATALOG.filter(g => levels[g.id].level === "low" && !g.multi)
     .sort((a, b) => (vegGuests ? (b.id === "gemuese") - (a.id === "gemuese") : 0) || (levels[a.id].amount / levels[a.id].target) - (levels[b.id].amount / levels[b.id].target));
-  for(let round = 0; round < 3; round++) for(const g of lowGroups){
+  // ein Getränk vorschlagen, wenn ich selbst noch keins zugesagt habe
+  const drinks = CATALOG.find(g => g.id === "getraenke");
+  if(levels.getraenke.level === "low" && !drinks.items.some(e => entryState(e, pool).mine)){
+    const d = [...drinks.items].sort((a, b) => entryState(a, pool).bring.length - entryState(b, pool).bring.length)[0];
+    if(d) add(d);
+  }
+  for(let round = 0; round < 2; round++) for(const g of lowGroups){
     const cand = g.items.filter(e => !entryState(e, pool).covered)[round]; if(cand) add(cand);
   }
   return { levels, hints: hints.slice(0, 3), sugg, people };
