@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pizzaabend</title>
+<meta name="description" content="Anmelden und absprechen, wer was mitbringt.">
+<meta property="og:title" content="🍕 Pizzaabend">
+<meta property="og:description" content="Anmelden und absprechen, wer was mitbringt.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍕</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbf6ee; --card:#fffdf9; --ink:#2a1f17; --muted:#7a6a5c; --line:#ecdfcc;
+  --tomato:#c8412b; --tomato-ink:#fff; --basil:#3f7a3a; --basil-soft:#e6f0e2;
+  --cheese:#f3c94b; --cheese-soft:#fcf1cf; --crust:#b9773a; --danger:#b3261e;
+  --shadow:0 1px 2px rgba(60,30,10,.06),0 6px 20px rgba(60,30,10,.06);
+  --r:16px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1a1410; --card:#241c16; --ink:#f4ebe0; --muted:#b4a392; --line:#3a2e24;
+  --tomato:#e05a41; --basil:#7fbf74; --basil-soft:#24321f; --cheese:#f3c94b; --cheese-soft:#3a3016;
+  --crust:#d79a5c; --danger:#ff8a80; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  padding:0 16px calc(40px + env(safe-area-inset-bottom))}
+.wrap{max-width:620px;margin:0 auto}
+header{padding:28px 0 8px;display:flex;align-items:center;gap:12px}
+header .logo{font-size:40px;line-height:1}
+h1{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:30px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:14px;margin:2px 0 0}
+h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:20px;margin:0 0 10px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 8px;font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin:14px 0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:500 14px Inter,sans-serif;cursor:pointer}
+.chip.on{background:var(--tomato);border-color:var(--tomato);color:var(--tomato-ink)}
+.chip.past{opacity:.6}
+.when{font-family:Fraunces,Georgia,serif;font-size:26px;font-weight:800;margin:0}
+.time{color:var(--muted);margin:2px 0 10px}
+.notes{background:var(--cheese-soft);border-radius:12px;padding:10px 12px;margin:10px 0 0;white-space:pre-wrap;font-size:15px}
+.seats{display:flex;align-items:center;gap:10px;margin:12px 0 4px}
+.dots{display:flex;flex-wrap:wrap;gap:5px}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dot.full{background:var(--tomato)}
+.seats-txt{font-size:14px;color:var(--muted)}
+label{display:block;font-size:13px;color:var(--muted);margin:0 0 4px;font-weight:500}
+input,select,textarea{width:100%;font:16px Inter,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--crust)}
+textarea{resize:vertical;min-height:64px}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row>*{flex:1;min-width:0}
+.row>.shrink{flex:0 0 auto}
+.btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font:600 15px Inter,sans-serif;cursor:pointer;background:var(--tomato);color:var(--tomato-ink);white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.green{background:var(--basil);color:#fff}
+.btn.small{padding:7px 11px;font-size:13px;border-radius:10px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.x{appearance:none;border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:8px}
+.x:hover{color:var(--danger)}
+ul.list{list-style:none;margin:0;padding:0}
+ul.list li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+ul.list li:first-child{border-top:0}
+.num{width:24px;height:24px;border-radius:50%;background:var(--cheese-soft);color:var(--crust);display:grid;place-items:center;font-size:12px;font-weight:600;flex:0 0 auto}
+.li-main{flex:1;min-width:0}
+.li-main .t{font-weight:500}
+.li-main .s{font-size:13px;color:var(--muted)}
+.me{font-size:11px;background:var(--basil-soft);color:var(--basil);border-radius:999px;padding:2px 8px;margin-left:6px;font-weight:600;vertical-align:middle}
+.wait .num{background:var(--line);color:var(--muted)}
+.tag{display:inline-block;font-size:12px;border-radius:999px;padding:2px 9px;background:var(--line);color:var(--muted)}
+.need li .t::before{content:"○ ";color:var(--tomato)}
+.need li.taken .t::before{content:"● ";color:var(--basil)}
+.have li .t::before{content:"✓ ";color:var(--basil);font-weight:600}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mt{margin-top:10px}
+.muted{color:var(--muted);font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.admin{border-color:var(--crust);border-style:dashed}
+.badge{font-size:12px;background:var(--crust);color:#fff;border-radius:999px;padding:3px 10px;font-weight:600}
+details summary{cursor:pointer;font-weight:600;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:" ▾";color:var(--muted)}
+details[open] summary::after{content:" ▴"}
+.share{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0}
+footer a{color:inherit}
+@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🍕</div>
+    <div><h1>Pizzaabend</h1><p class="sub">Anmelden &amp; absprechen, wer was mitbringt</p></div>
+  </header>
+
+  <div id="adminBox"></div>
+  <div class="chips" id="chips"></div>
+  <div id="main"><div class="card"><p class="muted">Lädt …</p></div></div>
+
+  <footer>Gastgeber? <a href="#" id="hostLink">Hier entlang</a></footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL = "https://obxwqvmmirmbfktjvhxf.supabase.co";
+const SB_KEY = "sb_publishable_z8qJ_vabWK3oWcczXR2YpQ_XVu7kO5s";
+const CATS = ["Teig & Mehl","Sauce","Käse","Belag","Gemüse & Kräuter","Getränke","Dessert","Sonstiges"];
+
+// ---------- Speicher im Browser (nur Komfort) ----------
+const ls = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let myName = ls.get("pz_name", "");
+let tokens = ls.get("pz_tokens", {});
+let adminKey = ls.get("pz_admin", "");
+function saveToken(id, tok){ tokens[id] = tok; ls.set("pz_tokens", tokens); }
+function dropToken(id){ delete tokens[id]; ls.set("pz_tokens", tokens); }
+
+// ---------- Datenbank ----------
+async function api(path, opts={}){
+  const res = await fetch(SB_URL + "/rest/v1/" + path, {
+    ...opts,
+    headers: { apikey: SB_KEY, "Content-Type": "application/json", ...(opts.headers||{}) }
+  });
+  const txt = await res.text();
+  const data = txt ? JSON.parse(txt) : null;
+  if(!res.ok){ throw new Error((data && (data.message || data.hint)) || "Fehler " + res.status); }
+  return data;
+}
+const rpc = (fn, args) => api("rpc/" + fn, { method:"POST", body: JSON.stringify(args) });
+
+// ---------- Zustand ----------
+let events = [], signups = [], items = [], selected = null, isAdmin = false, editing = false;
+const today = new Date(); today.setHours(0,0,0,0);
+const isPast = e => new Date(e.event_date + "T00:00") < today;
+
+async function load(){
+  const [ev, su, it] = await Promise.all([
+    api("pz_events?select=id,event_date,event_time,title,max_guests,notes,closed&order=event_date.asc"),
+    api("pz_signups?select=id,event_id,name,created_at&order=created_at.asc"),
+    api("pz_items?select=id,event_id,name,category,qty,kind,person,created_at&order=created_at.asc")
+  ]);
+  events = ev; signups = su; items = it;
+  const visible = visibleEvents();
+  const wanted = new URLSearchParams(location.search).get("e");
+  if(!selected || !events.find(e => e.id === selected)){
+    selected = (wanted && events.find(e => e.id === wanted) ? wanted : null)
+      || (visible.find(e => !isPast(e)) || visible[visible.length-1] || {}).id || null;
+  }
+  render();
+}
+
+function visibleEvents(){
+  if(isAdmin){
+    const past = events.filter(isPast).slice(-3);
+    return [...past, ...events.filter(e => !isPast(e))];
+  }
+  return events.filter(e => !isPast(e));
+}
+
+// ---------- Hilfen ----------
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDate = (d, opt) => new Date(d + "T00:00").toLocaleDateString("de-DE", opt);
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2600); }
+function needName(){
+  const v = (document.getElementById("nameInput")?.value || myName || "").trim();
+  if(!v){ toast("Bitte oben zuerst deinen Namen eintragen"); document.getElementById("nameInput")?.focus(); return null; }
+  myName = v; ls.set("pz_name", v); return v;
+}
+async function act(fn, okMsg){
+  try{ await fn(); if(okMsg) toast(okMsg); await load(); }
+  catch(e){ toast(e.message); }
+}
+
+// ---------- Darstellung ----------
+function render(){
+  renderAdminBox();
+  const vis = visibleEvents();
+  document.getElementById("chips").innerHTML = vis.length > 1 ? vis.map(e =>
+    `<button class="chip ${e.id===selected?'on':''} ${isPast(e)?'past':''}" data-ev="${e.id}">${esc(fmtDate(e.event_date,{weekday:'short',day:'numeric',month:'short'}))}</button>`
+  ).join("") : "";
+
+  const ev = events.find(e => e.id === selected);
+  const main = document.getElementById("main");
+  if(!ev){
+    main.innerHTML = `<div class="card"><h2>Gerade kein Termin geplant</h2><p class="muted">Sobald der nächste Pizzaabend steht, taucht er hier auf. Einfach den Link behalten.</p></div>` + vorratCard(null);
+    return;
+  }
+  const guests = signups.filter(s => s.event_id === ev.id);
+  const confirmed = guests.slice(0, ev.max_guests), waiting = guests.slice(ev.max_guests);
+  const free = Math.max(0, ev.max_guests - guests.length);
+  const open = !ev.closed && !isPast(ev);
+  const mine = guests.find(g => tokens[g.id]);
+
+  let html = `<div class="card">
+    ${isPast(ev) ? '<span class="tag">vergangen</span>' : ev.closed ? '<span class="tag">Anmeldung geschlossen</span>' : ''}
+    <p class="when">${esc(fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'}))}</p>
+    <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}</p>
+    <div class="seats"><div class="dots">${Array.from({length:ev.max_guests},(_,i)=>`<span class="dot ${i<confirmed.length?'full':''}"></span>`).join("")}</div>
+      <span class="seats-txt">${free ? `${free} von ${ev.max_guests} Plätzen frei` : `Voll${waiting.length ? ` · ${waiting.length} auf Warteliste` : ' – Warteliste offen'}`}</span></div>
+    ${ev.notes ? `<p class="notes">${esc(ev.notes)}</p>` : ""}
+    <div class="mt">
+      <label for="nameInput">Dein Name</label>
+      <div class="row">
+        <input id="nameInput" placeholder="z. B. Anna" value="${esc(myName)}" autocomplete="given-name" maxlength="40">
+        ${open && !mine ? `<button class="btn shrink" id="joinBtn">${free ? "Ich bin dabei" : "Auf Warteliste"}</button>` : ""}
+      </div>
+      ${mine ? `<p class="muted mt">Du bist angemeldet${guests.indexOf(mine) >= ev.max_guests ? ` – Warteliste Platz ${guests.indexOf(mine)-ev.max_guests+1}` : ""} 🎉</p>` : ""}
+    </div>
+    <h3>Dabei (${confirmed.length}/${ev.max_guests})</h3>
+    ${confirmed.length ? `<ul class="list">${confirmed.map((g,i)=>guestLi(g,i+1,open)).join("")}</ul>` : `<p class="empty">Noch niemand – sei die/der Erste!</p>`}
+    ${waiting.length ? `<h3>Warteliste</h3><ul class="list wait">${waiting.map((g,i)=>guestLi(g,i+1,open)).join("")}</ul><p class="muted">Sagt jemand ab, rückt die Warteliste automatisch nach.</p>` : ""}
+    <div class="share">
+      <button class="btn ghost small" id="waBtn">In WhatsApp teilen</button>
+      <button class="btn ghost small" id="copyBtn">Link kopieren</button>
+    </div>
+  </div>`;
+
+  // Zutaten
+  const evItems = items.filter(i => i.event_id === ev.id);
+  const need = evItems.filter(i => i.kind === "bedarf");
+  const have = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...evItems.filter(i => i.kind === "vorrat")];
+  const bring = evItems.filter(i => i.kind === "mitbringsel");
+
+  html += `<div class="card"><h2>Zutaten</h2>
+    <h3>Wird noch gebraucht</h3>
+    ${need.length ? `<ul class="list need">${need.map(i => needLi(i, open)).join("")}</ul>` : `<p class="empty">Nichts Bestimmtes – bring gern mit, worauf du Lust hast.</p>`}
+    <h3>Ist schon da</h3>
+    ${have.length ? `<ul class="list have">${have.map(i => haveLi(i)).join("")}</ul>` : `<p class="empty">Noch nichts eingetragen.</p>`}
+    <h3>Bringen Gäste mit</h3>
+    ${bring.length ? groupByCat(bring).map(([cat, list]) => `<p class="muted" style="margin:10px 0 2px;font-weight:600">${esc(cat)}</p><ul class="list">${list.map(i => bringLi(i, open)).join("")}</ul>`).join("") : `<p class="empty">Noch nichts – trag ein, was du mitbringst.</p>`}
+    ${open ? `<div class="mt" style="border-top:1px solid var(--line);padding-top:14px">
+      <label>Ich bringe mit …</label>
+      <div class="row"><input id="itName" placeholder="z. B. Salami, Rucola, Bier" maxlength="60"></div>
+      <div class="grid2 mt">
+        <div><label for="itQty">Menge (optional)</label><input id="itQty" placeholder="z. B. 200 g, 6 Fl." maxlength="30"></div>
+        <div><label for="itCat">Kategorie</label><select id="itCat">${CATS.map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
+      </div>
+      <button class="btn green wide mt" id="addItemBtn">Eintragen</button>
+    </div>` : ""}
+  </div>`;
+
+  if(isAdmin) html += adminEventCard(ev) + vorratCard(ev);
+  main.innerHTML = html;
+}
+
+function guestLi(g, n, open){
+  const own = !!tokens[g.id];
+  return `<li><span class="num">${n}</span><div class="li-main"><span class="t">${esc(g.name)}</span>${own?'<span class="me">du</span>':''}</div>
+    ${own && open ? `<button class="btn ghost small" data-leave="${g.id}">Absagen</button>` : ""}
+    ${isAdmin ? `<button class="x" title="Entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</li>`;
+}
+function needLi(i, open){
+  const own = !!tokens[i.id];
+  const sub = [i.qty, i.person ? `bringt ${i.person}` : "noch offen"].filter(Boolean).join(" · ");
+  return `<li class="${i.person?'taken':''}"><div class="li-main"><div class="t">${esc(i.name)}</div><div class="s">${esc(sub)}</div></div>
+    ${!i.person && open ? `<button class="btn small" data-claim="${i.id}">Bringe ich</button>` : ""}
+    ${own && i.person && open ? `<button class="btn ghost small" data-unclaim="${i.id}">Doch nicht</button>` : ""}
+    ${isAdmin ? `<button class="x" title="Löschen" data-adm="item" data-id="${i.id}">×</button>` : ""}</li>`;
+}
+function haveLi(i){
+  return `<li><div class="li-main"><div class="t">${esc(i.name)}</div>${i.qty?`<div class="s">${esc(i.qty)}</div>`:""}</div>
+    ${isAdmin ? `<button class="x" title="Löschen" data-adm="item" data-id="${i.id}">×</button>` : ""}</li>`;
+}
+function bringLi(i, open){
+  const own = !!tokens[i.id];
+  return `<li><div class="li-main"><div class="t">${esc(i.name)}${i.qty?` <span class="muted">· ${esc(i.qty)}</span>`:""}</div><div class="s">${esc(i.person)}${own?' <span class="me">du</span>':''}</div></div>
+    ${(own && open) || isAdmin ? `<button class="x" title="Löschen" ${isAdmin && !own ? `data-adm="item" data-id="${i.id}"` : `data-rm="${i.id}"`}>×</button>` : ""}</li>`;
+}
+function groupByCat(list){
+  const m = new Map(); CATS.forEach(c => m.set(c, []));
+  list.forEach(i => (m.get(i.category) || m.get("Sonstiges")).push(i));
+  return [...m].filter(([,l]) => l.length);
+}
+
+// ---------- Gastgeber-Bereich ----------
+function renderAdminBox(){
+  document.getElementById("adminBox").innerHTML = isAdmin ? `<div class="card admin">
+    <div class="row" style="align-items:center"><div><span class="badge">Gastgeber-Modus</span></div>
+    <button class="btn small shrink" id="newEvBtn">+ Neuer Termin</button>
+    <button class="btn ghost small shrink" id="logoutBtn">Abmelden</button></div>
+    ${editing ? eventForm(editing === "new" ? null : events.find(e => e.id === editing)) : ""}
+  </div>` : "";
+}
+function eventForm(ev){
+  const d = ev ? ev.event_date : new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+  return `<div class="mt"><h2>${ev ? "Termin bearbeiten" : "Neuer Termin"}</h2>
+    <div class="grid2"><div><label>Datum</label><input type="date" id="fDate" value="${esc(d)}"></div>
+    <div><label>Uhrzeit</label><input type="time" id="fTime" value="${esc(ev?.event_time || "19:00")}"></div></div>
+    <div class="grid2 mt"><div><label>Titel</label><input id="fTitle" value="${esc(ev?.title || "Pizzaabend")}" maxlength="60"></div>
+    <div><label>Plätze</label><input type="number" id="fMax" min="1" max="40" value="${ev?.max_guests || 8}"></div></div>
+    <div class="mt"><label>Infos für alle (optional)</label><textarea id="fNotes" placeholder="z. B. Teig mache ich, bringt Belag mit!">${esc(ev?.notes || "")}</textarea></div>
+    ${ev ? `<label class="mt" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="fClosed" style="width:auto" ${ev.closed?"checked":""}> Anmeldung schließen</label>` : ""}
+    <div class="row mt"><button class="btn" id="saveEvBtn" data-id="${ev?.id || ""}">Speichern</button>
+    <button class="btn ghost shrink" id="cancelEvBtn">Abbrechen</button>
+    ${ev ? `<button class="btn ghost shrink" style="color:var(--danger)" id="delEvBtn" data-id="${ev.id}">Löschen</button>` : ""}</div></div>`;
+}
+function adminEventCard(ev){
+  return `<div class="card admin"><h2>Für diesen Termin</h2>
+    <p class="muted">„Wird gebraucht“ können Gäste mit einem Klick übernehmen. „Ist da“ zeigt, was sie nicht kaufen müssen.</p>
+    ${itemForm("ev")}
+    <button class="btn ghost small mt" id="editEvBtn" data-id="${ev.id}">Termin bearbeiten / schließen</button>
+  </div>`;
+}
+function vorratCard(ev){
+  if(!isAdmin) return "";
+  const vorrat = items.filter(i => i.kind === "vorrat" && !i.event_id);
+  return `<div class="card admin"><h2>Mein Vorrat</h2>
+    <p class="muted">Gilt für alle Termine – z. B. Mehl, Hefe, Öl. Löschen, wenn es aufgebraucht ist.</p>
+    ${vorrat.length ? `<ul class="list have">${vorrat.map(haveLi).join("")}</ul>` : `<p class="empty">Leer.</p>`}
+    ${itemForm("stock")}
+  </div>`;
+}
+function itemForm(scope){
+  return `<div class="mt">
+    <div class="row"><input id="${scope}Name" placeholder="Zutat" maxlength="60"></div>
+    <div class="grid2 mt"><input id="${scope}Qty" placeholder="Menge (optional)" maxlength="30">
+    <select id="${scope}Cat">${CATS.map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
+    <div class="row mt">
+      ${scope === "ev" ? `<button class="btn" data-addadm="bedarf">Wird gebraucht</button><button class="btn green" data-addadm="vorrat-ev">Ist da</button>`
+                       : `<button class="btn green" data-addadm="vorrat-all">Zum Vorrat</button>`}
+    </div></div>`;
+}
+
+// ---------- Klicks ----------
+document.addEventListener("click", async (e) => {
+  const t = e.target.closest("button, a"); if(!t) return;
+  const ev = events.find(x => x.id === selected);
+
+  if(t.dataset.ev){ selected = t.dataset.ev; editing = false; render(); return; }
+  if(t.id === "hostLink"){ e.preventDefault(); return hostLogin(); }
+
+  if(t.id === "joinBtn"){ const n = needName(); if(!n) return;
+    return act(async()=>{ const r = await rpc("pz_join",{p_event:ev.id,p_name:n}); saveToken(r.id, r.token); }, "Du bist eingetragen 🍕"); }
+  if(t.dataset.leave){ if(!confirm("Wirklich absagen?")) return;
+    return act(async()=>{ await rpc("pz_leave",{p_id:t.dataset.leave,p_token:tokens[t.dataset.leave]}); dropToken(t.dataset.leave); }, "Abgesagt"); }
+
+  if(t.id === "addItemBtn"){ const n = needName(); if(!n) return;
+    const name = document.getElementById("itName").value.trim(); if(!name) return toast("Was bringst du mit?");
+    const dup = similar(name, ev); if(dup && !confirm(`Gibt es schon: ${dup}. Trotzdem eintragen?`)) return;
+    return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:name,p_category:document.getElementById("itCat").value,p_qty:document.getElementById("itQty").value,p_person:n}); saveToken(r.id, r.token); }, "Eingetragen"); }
+  if(t.dataset.rm){ return act(async()=>{ await rpc("pz_remove_item",{p_id:t.dataset.rm,p_token:tokens[t.dataset.rm]}); dropToken(t.dataset.rm); }, "Gelöscht"); }
+  if(t.dataset.claim){ const n = needName(); if(!n) return;
+    return act(async()=>{ const r = await rpc("pz_claim",{p_id:t.dataset.claim,p_person:n}); saveToken(r.id, r.token); }, "Danke, ist notiert!"); }
+  if(t.dataset.unclaim){ return act(async()=>{ await rpc("pz_unclaim",{p_id:t.dataset.unclaim,p_token:tokens[t.dataset.unclaim]}); dropToken(t.dataset.unclaim); }, "Wieder freigegeben"); }
+
+  if(t.id === "waBtn" || t.id === "copyBtn"){
+    const url = location.origin + location.pathname + "?e=" + ev.id;
+    const guests = signups.filter(s => s.event_id === ev.id).length;
+    const free = Math.max(0, ev.max_guests - guests);
+    const text = `🍕 ${ev.title} am ${fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'})} um ${ev.event_time} Uhr – ${free ? `noch ${free} Plätze frei` : "Warteliste offen"}. Anmelden & Zutaten absprechen: ${url}`;
+    if(t.id === "waBtn") window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+    else { try{ await navigator.clipboard.writeText(url); toast("Link kopiert"); }catch(_){ prompt("Link kopieren:", url); } }
+    return;
+  }
+
+  // Gastgeber
+  if(t.id === "logoutBtn"){ isAdmin = false; adminKey = ""; ls.set("pz_admin",""); editing = false; return load(); }
+  if(t.id === "newEvBtn"){ editing = "new"; return render(); }
+  if(t.id === "editEvBtn"){ editing = t.dataset.id; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(t.id === "cancelEvBtn"){ editing = false; return render(); }
+  if(t.id === "saveEvBtn"){
+    const id = t.dataset.id || null; const date = document.getElementById("fDate").value; if(!date) return toast("Datum fehlt");
+    return act(async()=>{
+      const newId = await rpc("pz_admin_save_event",{p_key:adminKey,p_id:id,p_date:date,p_time:document.getElementById("fTime").value,
+        p_title:document.getElementById("fTitle").value,p_max:parseInt(document.getElementById("fMax").value)||8,
+        p_notes:document.getElementById("fNotes").value,p_closed:!!document.getElementById("fClosed")?.checked});
+      selected = newId; editing = false;
+    }, "Termin gespeichert"); }
+  if(t.id === "delEvBtn"){ if(!confirm("Termin mit allen Anmeldungen und Einträgen löschen?")) return;
+    return act(async()=>{ await rpc("pz_admin_delete_event",{p_key:adminKey,p_id:t.dataset.id}); selected = null; editing = false; }, "Termin gelöscht"); }
+  if(t.dataset.addadm){
+    const scope = t.dataset.addadm === "vorrat-all" ? "stock" : "ev";
+    const name = document.getElementById(scope+"Name").value.trim(); if(!name) return toast("Zutat fehlt");
+    const kind = t.dataset.addadm === "bedarf" ? "bedarf" : "vorrat";
+    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:scope==="stock"?null:ev.id,p_kind:kind,p_name:name,
+      p_category:document.getElementById(scope+"Cat").value,p_qty:document.getElementById(scope+"Qty").value}), "Hinzugefügt"); }
+  if(t.dataset.adm){ return act(()=>rpc("pz_admin_remove",{p_key:adminKey,p_kind:t.dataset.adm,p_id:t.dataset.id}), "Entfernt"); }
+});
+
+function similar(name, ev){
+  const n = name.toLowerCase();
+  const pool = items.filter(i => i.event_id === ev.id || (!i.event_id && i.kind === "vorrat"));
+  const hit = pool.find(i => { const m = i.name.toLowerCase(); return m.includes(n) || n.includes(m); });
+  return hit ? `„${hit.name}“${hit.person ? ` (${hit.person})` : hit.kind === "vorrat" ? " (ist schon da)" : ""}` : null;
+}
+
+async function hostLogin(){
+  const k = prompt("Gastgeber-Schlüssel:"); if(!k) return;
+  try{ if(await rpc("pz_admin_check",{p_key:k.trim()})){ adminKey = k.trim(); ls.set("pz_admin", adminKey); isAdmin = true; toast("Gastgeber-Modus an"); load(); }
+       else toast("Schlüssel stimmt nicht"); }catch(e){ toast(e.message); }
+}
+
+// Name merken, während getippt wird
+document.addEventListener("input", e => { if(e.target.id === "nameInput"){ myName = e.target.value.trim(); ls.set("pz_name", myName); } });
+
+// Start + regelmäßig aktualisieren (nicht während jemand tippt)
+(async () => {
+  if(adminKey){ try{ isAdmin = await rpc("pz_admin_check",{p_key:adminKey}); }catch(_){ } }
+  load().catch(e => { document.getElementById("main").innerHTML = `<div class="card"><p>Konnte nicht laden: ${esc(e.message)}</p></div>`; });
+})();
+const busy = () => { const a = document.activeElement; return a && /INPUT|SELECT|TEXTAREA/.test(a.tagName); };
+setInterval(() => { if(!document.hidden && !busy() && !editing) load().catch(()=>{}); }, 20000);
+document.addEventListener("visibilitychange", () => { if(!document.hidden && !busy()) load().catch(()=>{}); });
+</script>
+</body>
+</html>
