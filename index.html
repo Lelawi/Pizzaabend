@@ -406,7 +406,8 @@ function groupAmount(g, pool, others){
 function groupLevel(g, pool, others, people){
   const t = TARGET[g.id]; if(!t) return { level: "", amount: 0, target: 0 };
   const target = t(people), amount = groupAmount(g, pool, others);
-  const level = amount < target ? "low" : (amount >= Math.ceil(target * 1.6) && amount >= target + 2) ? "plenty" : "ok";
+  const optional = g.id === "extras" || g.id === "dessert";   // Kür: nie „knapp“, nur „reichlich“
+  const level = amount < target ? (optional ? "ok" : "low") : (amount >= Math.ceil(target * 1.6) && amount >= target + 2) ? "plenty" : "ok";
   return { level, amount, target };
 }
 function smartInfo(ev, pool, others){
