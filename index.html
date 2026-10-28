@@ -363,7 +363,7 @@ const whoText = list => list.map(i => tokens[i.id] ? "du" : i.person).join(", ")
 function itemRow({ icon, name, tip, basis, st, multi, idx, ev, open, extra }){
   let status = "";
   if(st.have.length) status = `<span class="ok">✓ da${st.have[0].qty ? ` · ${esc(st.have[0].qty)}` : ""}</span>`;
-  let who = st.bring.length ? `<div class="who">${multi ? "🙋 " : "bringt "}${esc(whoText(st.bring))}</div>` : "";
+  let who = st.bring.length ? `<div class="who">🙋 ${esc(whoText(st.bring))}</div>` : "";
   let btns = "";
   if(isAdmin){
     if(st.have.length) btns += `<button class="x" aria-label="Aus dem Vorrat entfernen" data-adm-ids="${st.have.map(i=>i.id).join(",")}">×</button>`;
