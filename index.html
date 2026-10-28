@@ -479,9 +479,8 @@ function catMatch(entry, pool){
 const METER = {
   "Pizzateig":          { per: 1,   unit: "count", label: "Teiglinge", def: 4, gPer: 250, packs: { teigling: 1, ballen: 1, kugel: 1, "stück": 1, stk: 1, portion: 1 } },
   "Tomatensauce":       { per: 80,  unit: "g", def: 400, packs: { dose: 400, glas: 500, "gläser": 500, flasche: 700, packung: 500, tetra: 500 } },
-  "Mozzarella":         { per: 100, unit: "g", def: 250, packs: { kugel: 125, rolle: 400, stange: 400, block: 400, packung: 250, beutel: 250 } },
-  "Frisches Basilikum": { per: 1/6, unit: "count", label: "Töpfe", def: 1, packs: { topf: 1, "töpfe": 1, bund: 1 } }
-};
+  "Mozzarella":         { per: 100, unit: "g", def: 250, packs: { kugel: 125, rolle: 400, stange: 400, block: 400, packung: 250, beutel: 250 } }
+};   // Basilikum bewusst ohne Menge: ein Topf reicht immer
 let PLAN = null;   // { people, final } für den gerade angezeigten Termin
 function daysUntil(ev){ return Math.round((new Date(ev.event_date + "T00:00") - today) / 864e5); }
 function planFor(ev){
