@@ -119,6 +119,7 @@ ul.items li{display:flex;align-items:center;gap:10px;padding:6px 0;min-height:44
 .im .who{font-size:12.5px;color:var(--basil);font-weight:600}
 .basis{font-size:10.5px;font-weight:600;color:var(--crust);border:1px solid var(--crust);border-radius:6px;padding:0 4px;margin-left:5px;vertical-align:2px;opacity:.8}
 .needed{font-size:10.5px;font-weight:600;color:#fff;background:var(--tomato);border-radius:6px;padding:1px 5px;margin-left:5px;vertical-align:2px}
+.needed.reopen{background:var(--crust)}
 li.done .t{color:var(--muted)}
 .right{display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .ok{color:var(--basil);font-size:13px;font-weight:600;white-space:nowrap}
@@ -271,11 +272,12 @@ async function load(force){
   const [ev, su, it] = await Promise.all([
     api("pz_events?select=id,event_date,event_time,title,max_guests,notes,closed,host&order=event_date.asc"),
     api("pz_signups?select=id,event_id,name,plus,diet,created_at&order=created_at.asc"),
-    api("pz_items?select=id,event_id,name,category,qty,kind,person,created_at&order=created_at.asc")
+    api("pz_items?select=id,event_id,name,category,qty,kind,person,released_by,created_at&order=created_at.asc")
   ]);
   const sig = JSON.stringify([ev, su, it]);
   if(!force && sig === lastSig) return;          // nichts geändert → nichts neu zeichnen (kein Springen)
-  lastSig = sig; events = ev; signups = su; items = it;
+  lastSig = sig; events = ev; signups = su;
+  items = it.filter(i => !(i.kind === "bedarf" && i.released_by && !i.person && i.category === "Getränke"));   // Getränke von Absagern verfallen
   const visible = visibleEvents();
   const wanted = new URLSearchParams(location.search).get("e");
   if(!selected || !events.find(e => e.id === selected)){
@@ -418,7 +420,10 @@ function smartInfo(ev, pool, others){
   const people = PLAN.people;
   const levels = Object.fromEntries(CATALOG.map(g => [g.id, groupLevel(g, pool, others, people)]));
   const hints = [];
-  const needOpen = pool.filter(i => i.kind === "bedarf" && !i.person);
+  const released = pool.filter(i => i.kind === "bedarf" && !i.person && i.released_by);
+  const byWho = {}; for(const i of released) (byWho[i.released_by] ||= []).push(i.name + (i.qty ? ` (${i.qty})` : ""));
+  for(const [who, list] of Object.entries(byWho)) hints.push(`🔄 ${who} hat abgesagt – wieder offen: ${list.join(", ")}`);
+  const needOpen = pool.filter(i => i.kind === "bedarf" && !i.person && !i.released_by);
   if(needOpen.length) hints.push(`🙏 Wird noch gebraucht: ${needOpen.map(i => i.name).join(", ")}`);
   for(const g of CATALOG){
     const l = levels[g.id];
@@ -458,7 +463,7 @@ function smartInfo(ev, pool, others){
   for(let round = 0; round < 2; round++) for(const g of lowGroups){
     const cand = g.items.filter(e => !entryState(e, pool).covered)[round]; if(cand) add(cand);
   }
-  return { levels, hints: hints.slice(0, 3), sugg, people };
+  return { levels, hints: hints.slice(0, 4), sugg, people };
 }
 
 // Welche Einträge passen zu einem Listeneintrag?
@@ -553,7 +558,8 @@ function itemRow({ icon, name, tip, basis, st, multi, idx, ev, open, extra }){
     else if(idx != null && mt && !st.covered) btns += `<button class="btn ghost small" data-cat-bring="${idx}">${st.have.length || st.bring.length ? "Rest bringe ich" : "Bringe ich"}</button>`;
     else if(idx != null && !mt && !st.have.length && (!st.bring.length || multi)) btns += `<button class="btn ghost small" data-cat-bring="${idx}">${st.bring.length ? "Ich auch" : "Bringe ich"}</button>`;
   }
-  const flags = (basis ? `<span class="basis">Basis</span>` : "") + (st.need ? `<span class="needed">fehlt</span>` : "");
+  const flags = (basis ? `<span class="basis">Basis</span>` : "") + (st.need ? (st.need.released_by ? `<span class="needed reopen">wieder offen</span>` : `<span class="needed">fehlt</span>`) : "");
+  if(st.need?.released_by && !who) sub = `${st.need.released_by} hat abgesagt${st.need.qty ? ` · ${st.need.qty}` : ""}` + (sub ? ` · ${sub}` : "");
   return `<li class="${st.covered && !multi ? "done" : ""}"><span class="ico" aria-hidden="true">${icon}</span>
     <div class="im"><div class="t">${esc(name)}${flags}</div>${who}${sub ? `<div class="s">${esc(sub)}</div>` : ""}</div>
     <div class="right">${status}${btns}</div></li>`;
@@ -689,8 +695,19 @@ document.addEventListener("click", async (e) => {
     return act(()=>rpc("pz_update_signup",{p_id:who,p_token:tokens[who],p_plus:cur.plus,p_diet:cur.diet||null}), o === "plus" ? (cur.plus ? `+${cur.plus} Begleitung eingetragen` : "Ohne Begleitung") : "Gespeichert"); }
   if(t.id === "calBtn"){ return addToCalendar(ev); }
   if(t.id === "missBtn"){ return shareMissing(ev); }
-  if(t.dataset.leave){ if(!confirm("Wirklich absagen?")) return;
-    return act(async()=>{ await rpc("pz_leave",{p_id:t.dataset.leave,p_token:tokens[t.dataset.leave]}); dropToken(t.dataset.leave); }, "Abgesagt"); }
+  if(t.dataset.leave){
+    const me = signups.find(x => x.id === t.dataset.leave);
+    const mineItems = items.filter(i => i.event_id === ev.id && i.person && me && i.person.toLowerCase() === me.name.toLowerCase() && i.category !== "Getränke");
+    const msg = mineItems.length
+      ? `Wirklich absagen?\n\nDeine Zutaten (${mineItems.map(i => i.name).join(", ")}) werden wieder freigegeben, damit jemand anderes sie übernehmen kann.`
+      : "Wirklich absagen?";
+    if(!confirm(msg)) return;
+    return act(async()=>{
+      await rpc("pz_release",{p_id:t.dataset.leave,p_token:tokens[t.dataset.leave]});
+      await rpc("pz_leave",{p_id:t.dataset.leave,p_token:tokens[t.dataset.leave]});
+      dropToken(t.dataset.leave);
+      for(const i of mineItems) dropToken(i.id);
+    }, mineItems.length ? "Abgesagt – deine Zutaten sind wieder frei" : "Abgesagt"); }
 
   if(t.dataset.addGrp){
     const g = CATALOG.find(x => x.id === t.dataset.addGrp), inp = document.getElementById("add-" + g.id);
