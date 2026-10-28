@@ -349,6 +349,8 @@ function countdown(ev){
   return d < 0 ? "" : d === 0 ? "heute" : d === 1 ? "morgen" : `in ${d} Tagen`;
 }
 const DIET = { vegetarisch: "🥦", vegan: "🌱" };
+// „Nico + Kate“, „Nico und Kate“, „Nico & Kate“, „Anna, Ben“ → 2 Personen
+const namesIn = n => String(n || "").split(/\s*(?:\+|&|,|\bund\b)\s*/i).filter(x => x.trim()).length || 1;
 let joinPlus = 0, joinDiet = "";
 function optChips(plus, diet, who){
   return `<div class="opts">
@@ -366,7 +368,7 @@ function eventCard(ev){
   const veg = confirmed.filter(g => g.diet).length;
   const cd = countdown(ev);
 
-  const gname = g => `<span class="gname ${tokens[g.id] ? "me" : ""}">${esc(g.name)}${g.plus ? ` +${g.plus}` : ""}${g.diet ? " " + DIET[g.diet] : ""}${tokens[g.id] ? " (du)" : ""}${isAdmin ? `<button class="x" aria-label="${esc(g.name)} entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</span>`;
+  const gname = g => `<span class="gname ${tokens[g.id] ? "me" : ""}">${esc(g.name)}${g.plus > namesIn(g.name) - 1 ? ` +${g.plus - (namesIn(g.name) - 1)}` : ""}${g.diet ? " " + DIET[g.diet] : ""}${tokens[g.id] ? " (du)" : ""}${isAdmin ? `<button class="x" aria-label="${esc(g.name)} entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</span>`;
   const guestLine = `<p class="guests">👥 Gäste: ${confirmed.length ? confirmed.map(gname).join(", ") : `<span class="muted">noch niemand</span>`}${waiting.length ? ` <span class="muted">· Warteliste:</span> ${waiting.map(gname).join(", ")}` : ""}</p>`;
 
   return `<div class="card">
@@ -701,6 +703,8 @@ document.addEventListener("click", async (e) => {
   if(t.id === "joinBtn"){ const n = needName(); if(!n) return;
     // Name schon angemeldet? Dann fragen, ob man es selbst ist (z. B. neues Handy oder Browser hat einen vergessen)
     const existing = signups.find(x => x.event_id === ev.id && x.name.trim().toLowerCase() === n.toLowerCase());
+    const extra = Math.min(3, namesIn(n) - 1);
+    if(!existing && extra > joinPlus && confirm(`„${n}“ – seid ihr ${extra + 1} Personen?\n\nDann zähle ich ${extra + 1} Plätze.`)) joinPlus = extra;
     if(existing){
       if(!confirm(`„${existing.name}“ ist schon angemeldet.\n\nBist du das? Dann übernimmt dieses Handy deine Anmeldung und deine Zutaten.`)){
         return toast("Bitte einen anderen Namen wählen, z. B. mit Nachnamen-Initial");
