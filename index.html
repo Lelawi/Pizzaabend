@@ -129,6 +129,22 @@ details.custom>summary{font-weight:600;color:var(--tomato)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .admin{border-color:var(--crust);border-style:dashed}
 .badge{white-space:nowrap;font-size:12px;background:var(--crust);color:#fff;border-radius:999px;padding:3px 10px;font-weight:600}
+.cd{display:inline-block;font-size:12px;font-weight:600;color:var(--tomato);background:var(--cheese-soft);border-radius:999px;padding:1px 8px;margin-left:4px;vertical-align:1px}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.opt{appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 11px;font:500 13px Inter,sans-serif;cursor:pointer}
+.opt.on{background:var(--basil-soft);border-color:var(--basil);color:var(--basil);font-weight:600}
+ul.hints{list-style:none;margin:10px 0 2px;padding:0;display:grid;gap:6px}
+ul.hints li{font-size:14px;background:var(--cheese-soft);border-radius:10px;padding:7px 10px}
+.quick{margin:10px 0 4px;padding:10px;border-radius:12px;background:var(--soft)}
+.ql{font-size:13px;font-weight:600;margin-bottom:7px}
+.sugs{display:flex;flex-wrap:wrap;gap:6px}
+.sug{appearance:none;border:1px solid var(--tomato);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 12px;font:600 14px Inter,sans-serif;cursor:pointer}
+.sug::after{content:" +";color:var(--tomato)}
+.sug.need{background:var(--tomato);color:var(--tomato-ink)}
+.sug.need::after{color:var(--tomato-ink)}
+.lv{font-weight:600}
+.lv.plenty{color:var(--basil)}
+.lv.low{color:var(--tomato)}
 footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0}
 footer a{color:inherit}
 @media (max-width:420px){.grid2{grid-template-columns:1fr}}
@@ -252,7 +268,7 @@ const isPast = e => new Date(e.event_date + "T00:00") < today;
 async function load(force){
   const [ev, su, it] = await Promise.all([
     api("pz_events?select=id,event_date,event_time,title,max_guests,notes,closed,host&order=event_date.asc"),
-    api("pz_signups?select=id,event_id,name,created_at&order=created_at.asc"),
+    api("pz_signups?select=id,event_id,name,plus,diet,created_at&order=created_at.asc"),
     api("pz_items?select=id,event_id,name,category,qty,kind,person,created_at&order=created_at.asc")
   ]);
   const sig = JSON.stringify([ev, su, it]);
@@ -310,36 +326,122 @@ function render(){
   window.scrollTo(0, y);
 }
 
-function eventCard(ev){
+// Plätze: Begleitungen belegen auch einen Platz, Reihenfolge = Anmeldezeit
+function seatSplit(ev){
   const guests = signups.filter(s => s.event_id === ev.id);
-  const confirmed = guests.slice(0, ev.max_guests), waiting = guests.slice(ev.max_guests);
-  const free = Math.max(0, ev.max_guests - guests.length);
+  let used = 0; const confirmed = [], waiting = [];
+  for(const g of guests){
+    const need = 1 + (g.plus || 0);
+    if(!waiting.length && used + need <= ev.max_guests){ confirmed.push(g); used += need; } else waiting.push(g);
+  }
+  return { guests, confirmed, waiting, used, free: Math.max(0, ev.max_guests - used) };
+}
+function countdown(ev){
+  const d = Math.round((new Date(ev.event_date + "T00:00") - today) / 864e5);
+  return d < 0 ? "" : d === 0 ? "heute" : d === 1 ? "morgen" : `in ${d} Tagen`;
+}
+const DIET = { vegetarisch: "🥦", vegan: "🌱" };
+let joinPlus = 0, joinDiet = "";
+function optChips(plus, diet, who){
+  return `<div class="opts">
+    <button class="opt ${plus ? "on" : ""}" data-opt="plus" data-who="${who}">${plus ? `👥 +${plus} Begleitung` : "👥 + Begleitung"}</button>
+    <button class="opt ${diet === "vegetarisch" ? "on" : ""}" data-opt="vegetarisch" data-who="${who}">🥦 vegetarisch</button>
+    <button class="opt ${diet === "vegan" ? "on" : ""}" data-opt="vegan" data-who="${who}">🌱 vegan</button>
+  </div>`;
+}
+
+function eventCard(ev){
+  const { guests, confirmed, waiting, used, free } = seatSplit(ev);
   const open = !ev.closed && !isPast(ev);
   const mine = guests.find(g => tokens[g.id]);
-  const myPos = mine ? guests.indexOf(mine) : -1;
+  const onWait = mine && waiting.includes(mine);
+  const veg = confirmed.filter(g => g.diet).length;
+  const cd = countdown(ev);
 
-  const pill = (g, wait) => `<span class="pill ${tokens[g.id]?'me':''} ${wait?'wait':''}">${esc(g.name)}${tokens[g.id]?' (du)':''}${isAdmin ? `<button class="x" aria-label="${esc(g.name)} entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</span>`;
+  const pill = (g, wait) => `<span class="pill ${tokens[g.id]?'me':''} ${wait?'wait':''}">${g.diet ? DIET[g.diet] + " " : ""}${esc(g.name)}${g.plus ? ` +${g.plus}` : ""}${tokens[g.id]?' (du)':''}${isAdmin ? `<button class="x" aria-label="${esc(g.name)} entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</span>`;
 
   return `<div class="card">
     ${isPast(ev) ? '<span class="pill" style="margin-bottom:8px">vergangen</span>' : ev.closed ? '<span class="pill" style="margin-bottom:8px">Anmeldung geschlossen</span>' : ''}
     <div class="when-row">
       <div><p class="when">${esc(fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'}))}</p>
-      <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}</p>
+      <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}${cd ? ` <span class="cd">${cd}</span>` : ""}</p>
       ${ev.host ? `<p class="host">🧑‍🍳 Gastgeber: ${esc(ev.host)}</p>` : ""}</div>
       ${isAdmin ? `<button class="btn ghost small" data-edit-ev="${ev.id}">✎ Bearbeiten</button>` : ""}
     </div>
-    <div class="seats"><div class="dots">${Array.from({length:ev.max_guests},(_,i)=>`<span class="dot ${i<confirmed.length?'full':''}"></span>`).join("")}</div>
-      <span class="seats-txt">${free ? `${free} von ${ev.max_guests} Plätzen frei` : `Voll${waiting.length ? ` · ${waiting.length} auf Warteliste` : ' · Warteliste offen'}`}</span></div>
+    <div class="seats"><div class="dots">${Array.from({length:ev.max_guests},(_,i)=>`<span class="dot ${i<used?'full':''}"></span>`).join("")}</div>
+      <span class="seats-txt">${free ? `${free} von ${ev.max_guests} Plätzen frei` : `Voll${waiting.length ? ` · ${waiting.length} auf Warteliste` : ' · Warteliste offen'}`}${veg ? ` · ${veg}× veggie` : ""}</span></div>
     ${ev.notes ? `<p class="notes">${esc(ev.notes)}</p>` : ""}
     ${mine
-      ? `<div class="mebox"><span>${myPos < ev.max_guests ? `✓ Du bist dabei, ${esc(mine.name)}` : `Warteliste Platz ${myPos - ev.max_guests + 1}, ${esc(mine.name)}`}</span>${open ? `<button class="linkbtn" data-leave="${mine.id}">Absagen</button>` : ""}</div>`
+      ? `<div class="mebox"><span>${onWait ? `⏳ Warteliste Platz ${waiting.indexOf(mine) + 1}, ${esc(mine.name)}` : `✓ Du bist dabei, ${esc(mine.name)}`}</span>${open ? `<button class="linkbtn" data-leave="${mine.id}">Absagen</button>` : ""}</div>
+         ${open ? optChips(mine.plus || 0, mine.diet || "", mine.id) : ""}`
       : open ? `<div class="row mt">
           <div><label for="nameInput">Dein Name</label><input id="nameInput" placeholder="z. B. Anna" value="${esc(myName)}" autocomplete="given-name" maxlength="40"></div>
-          <button class="btn shrink" id="joinBtn">${free ? "Ich bin dabei" : "Auf Warteliste"}</button>
-        </div>` : ""}
+          <button class="btn shrink" id="joinBtn">${free > joinPlus ? "Ich bin dabei" : "Auf Warteliste"}</button>
+        </div>${optChips(joinPlus, joinDiet, "join")}` : ""}
     ${confirmed.length || waiting.length ? `<div class="pills">${confirmed.map(g => pill(g,false)).join("")}${waiting.length ? `<span class="wait-label">Warteliste:</span>${waiting.map(g => pill(g,true)).join("")}` : ""}</div>` : `<p class="hint">Noch niemand angemeldet.</p>`}
-    ${isAdmin ? `<div class="actions mt"><button class="btn ghost small" id="waBtn">In WhatsApp teilen</button><button class="btn ghost small" id="copyBtn">Link kopieren</button></div>` : ""}
+    <div class="actions mt">
+      ${!isPast(ev) ? `<button class="btn ghost small" id="calBtn">📅 In den Kalender</button>` : ""}
+      ${isAdmin ? `<button class="btn ghost small" id="waBtn">In WhatsApp teilen</button><button class="btn ghost small" id="copyBtn">Link kopieren</button>` : ""}
+    </div>
   </div>`;
+}
+
+// ---------- Mitdenken: Mengen, Hinweise, Vorschläge ----------
+// Wie viel braucht eine Gruppe ungefähr, abhängig von der Gästezahl n?
+const TARGET = {
+  kaese:     n => Math.max(2, Math.ceil(n / 3)),
+  fleisch:   n => Math.max(2, Math.ceil(n / 3)),
+  gemuese:   n => Math.max(3, Math.ceil(n / 2)),
+  extras:    n => 2,
+  getraenke: n => Math.max(2, Math.ceil(n * 0.7)),
+  dessert:   n => 1
+};
+const GROUP_CAT = { kaese:"Käse", fleisch:"Belag", getraenke:"Getränke", dessert:"Dessert" };
+function groupAmount(g, pool, others){
+  let n = 0;
+  for(const e of g.items){ const st = entryState(e, pool); n += st.bring.length + (st.have.length ? 1 : 0); }
+  if(GROUP_CAT[g.id]) n += others.filter(i => i.category === GROUP_CAT[g.id] && i.kind !== "bedarf").length;
+  return n;
+}
+function groupLevel(g, pool, others, people){
+  const t = TARGET[g.id]; if(!t) return { level: "", amount: 0, target: 0 };
+  const target = t(people), amount = groupAmount(g, pool, others);
+  const level = amount < target ? "low" : (amount >= Math.ceil(target * 1.6) && amount >= target + 2) ? "plenty" : "ok";
+  return { level, amount, target };
+}
+function smartInfo(ev, pool, others){
+  const { confirmed, used } = seatSplit(ev);
+  const people = Math.max(used, 1) + 1;   // Gäste + Gastgeber
+  const levels = Object.fromEntries(CATALOG.map(g => [g.id, groupLevel(g, pool, others, people)]));
+  const hints = [];
+  const needOpen = pool.filter(i => i.kind === "bedarf" && !i.person);
+  if(needOpen.length) hints.push(`🙏 Wird noch gebraucht: ${needOpen.map(i => i.name).join(", ")}`);
+  for(const g of CATALOG){
+    const l = levels[g.id];
+    if(l.level === "plenty" && !g.multi){
+      const lowList = CATALOG.filter(x => levels[x.id].level === "low" && !x.multi && x.id !== g.id && TARGET[x.id])
+        .sort((a, b) => (levels[a.id].amount / levels[a.id].target) - (levels[b.id].amount / levels[b.id].target) || (b.id === "gemuese") - (a.id === "gemuese"));
+      const low = lowList[0];
+      hints.push(`${g.icon} ${g.name} gibt's schon reichlich (${l.amount}×)${low ? ` – vielleicht lieber ${low.name}?` : ""}`);
+    }
+  }
+  const veg = confirmed.filter(g => g.diet).length;
+  if(veg && levels.gemuese.amount < Math.max(2, veg)) hints.push(`🥦 ${veg} ${veg === 1 ? "Gast isst" : "Gäste essen"} vegetarisch – Gemüse-Belag ist noch knapp`);
+  if(used >= 3 && levels.getraenke.level === "low") hints.push(`🥤 Erst ${levels.getraenke.amount}× Getränke zugesagt – bringt gern jeder etwas für sich mit`);
+
+  // Schnell-Vorschläge: zuerst was der Gastgeber braucht, dann fehlende Basics, dann knappe Gruppen
+  const sugg = [];
+  const seen = new Set();
+  const add = (e, claimId) => { if(sugg.length < 4 && !seen.has(e.n)){ seen.add(e.n); sugg.push({ e, claimId }); } };
+  for(const e of CAT_FLAT){ const st = entryState(e, pool); if(st.need) add(e, st.need.id); }
+  let nb = 0; for(const e of BASICS){ if(nb < 2 && !entryState(e, pool).covered){ add(e); nb++; } }
+  const vegGuests = confirmed.filter(g => g.diet).length;
+  const lowGroups = CATALOG.filter(g => levels[g.id].level === "low" && !g.multi)
+    .sort((a, b) => (vegGuests ? (b.id === "gemuese") - (a.id === "gemuese") : 0) || (levels[a.id].amount / levels[a.id].target) - (levels[b.id].amount / levels[b.id].target));
+  for(let round = 0; round < 3; round++) for(const g of lowGroups){
+    const cand = g.items.filter(e => !entryState(e, pool).covered)[round]; if(cand) add(cand);
+  }
+  return { levels, hints: hints.slice(0, 3), sugg, people };
 }
 
 // Welche Einträge passen zu einem Listeneintrag?
@@ -395,6 +497,11 @@ function zutatenCard(ev, open){
     return `<span class="bp ${st.covered ? "" : "miss"}">${st.covered ? "✓" : "○"} ${esc(e.n.replace("Frisches ",""))}</span>`;
   }).join("");
 
+  // Einträge, die zu keinem Listeneintrag passen
+  const known = new Set(CAT_FLAT.flatMap(e => catMatch(e, pool).map(i => i.id)));
+  const others = pool.filter(i => !known.has(i.id));
+  const smart = ev ? smartInfo(ev, pool, others) : null;
+
   let totalMissing = 0, totalNeeded = 0;
   const groupsHtml = CATALOG.map(g => {
     const rows = g.items.map(e => ({ e, idx: CAT_FLAT.indexOf(e), st: entryState(e, pool) }));
@@ -415,15 +522,14 @@ function zutatenCard(ev, open){
     const info = g.multi
       ? (() => { const n = rows.reduce((s,r)=>s + r.st.bring.length, 0); return n ? `${n}× zugesagt` : `<b>noch nichts</b>`; })()
       : `${covered.length}/${rows.length} da${needed ? ` · <b>${needed} fehlt</b>` : ""}`;
+    const lvl = smart?.levels[g.id]?.level;
+    const lvlTag = lvl === "plenty" ? ` · <span class="lv plenty">reichlich</span>` : (lvl === "low" && ev && open) ? ` · <span class="lv low">knapp</span>` : "";
     const def = g.id === "basis" || needed > 0;
     return `<details class="grp" data-key="g-${g.id}" ${isOpen("g-"+g.id, def) ? "open" : ""}>
-      <summary><span class="gi" aria-hidden="true">${g.icon}</span><span class="gn">${esc(g.name)}</span><span class="gs">${info}</span></summary>
+      <summary><span class="gi" aria-hidden="true">${g.icon}</span><span class="gn">${esc(g.name)}</span><span class="gs">${info}${lvlTag}</span></summary>
       ${body}</details>`;
   }).join("");
 
-  // Einträge, die zu keinem Listeneintrag passen
-  const known = new Set(CAT_FLAT.flatMap(e => catMatch(e, pool).map(i => i.id)));
-  const others = pool.filter(i => !known.has(i.id));
   const otherHtml = others.length ? `<details class="grp" data-key="g-other" ${isOpen("g-other", true) ? "open" : ""}>
       <summary><span class="gi" aria-hidden="true">🧺</span><span class="gn">Weitere Einträge</span><span class="gs">${others.length}</span></summary>
       <ul class="items">${others.map(i => {
@@ -445,7 +551,11 @@ function zutatenCard(ev, open){
 
   return `<div class="card">
     <div class="zhead"><h2>Zutaten</h2><span class="zsum">${totalNeeded ? `${totalNeeded} wird noch gebraucht` : "Tippe an, was du mitbringst"}</span></div>
+    ${isAdmin && ev && open ? `<div class="actions" style="margin-top:8px"><button class="btn ghost small" id="missBtn">📋 Was fehlt – in WhatsApp</button></div>` : ""}
     <div class="basics" aria-label="Basis-Zutaten">${basicsHtml}</div>
+    ${smart && smart.hints.length ? `<ul class="hints">${smart.hints.map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
+    ${smart && open && !isAdmin && smart.sugg.length ? `<div class="quick"><div class="ql">⚡ Mit einem Tipp mitbringen – das fehlt am meisten:</div><div class="sugs">${smart.sugg.map(({e, claimId}) =>
+        claimId ? `<button class="sug need" data-claim="${claimId}">${e.i} ${esc(e.n)}</button>` : `<button class="sug" data-cat-bring="${CAT_FLAT.indexOf(e)}">${e.i} ${esc(e.n)}</button>`).join("")}</div></div>` : ""}
     <details class="tip" data-key="tip" ${isOpen("tip", false) ? "open" : ""}><summary>💧 Tipp: Je trockener, desto besser ▾</summary>
       <p>Im heißen Ofen verdampft Wasser nicht schnell genug, der Boden wird matschig. Also lieber Pizza-Mozzarella am Stück als Kugeln aus der Lake (die gut abtropfen lassen), Dosenware abtropfen, Gemüse dünn schneiden. Frisches wie Rucola, Burrata oder Rohschinken erst nach dem Backen drauf.</p></details>
     ${groupsHtml}${otherHtml}${custom}
@@ -458,22 +568,25 @@ function renderAdminBox(){
     <div class="actions" style="align-items:center"><span class="badge" style="margin-right:auto">Gastgeber-Modus</span>
     <button class="btn small" id="newEvBtn">+ Neuer Termin</button>
     <button class="btn ghost small" id="logoutBtn">Abmelden</button></div>
-    ${editing ? eventForm(editing === "new" ? null : events.find(e => e.id === editing)) : ""}
+    ${editing ? eventForm(editing === "new" ? null : events.find(e => e.id === editing), editing === "new" ? copyFrom : null) : ""}
   </div>` : "";
 }
-function eventForm(ev){
-  const d = ev ? ev.event_date : new Date(Date.now()+14*864e5).toISOString().slice(0,10);
-  return `<div class="mt"><h2 style="margin-bottom:10px">${ev ? "Termin bearbeiten" : "Neuer Termin"}</h2>
+let copyFrom = null;
+function eventForm(ev, tpl){
+  const src = ev || tpl;
+  const d = ev ? ev.event_date : tpl ? new Date(new Date(tpl.event_date + "T12:00").getTime() + 28*864e5).toISOString().slice(0,10) : new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+  return `<div class="mt"><h2 style="margin-bottom:10px">${ev ? "Termin bearbeiten" : tpl ? "Termin kopieren" : "Neuer Termin"}</h2>
     <div class="grid2"><div><label for="fDate">Datum</label><input type="date" id="fDate" value="${esc(d)}"></div>
-    <div><label for="fTime">Uhrzeit</label><input type="time" id="fTime" value="${esc(ev?.event_time || "19:00")}"></div></div>
-    <div class="mt"><label for="fHost">Gastgeber</label><input id="fHost" list="hostList" value="${esc(ev?.host || "")}" placeholder="z. B. Lars, Mary oder Lars &amp; Mary" maxlength="60">
+    <div><label for="fTime">Uhrzeit</label><input type="time" id="fTime" value="${esc(src?.event_time || "19:00")}"></div></div>
+    <div class="mt"><label for="fHost">Gastgeber</label><input id="fHost" list="hostList" value="${esc(src?.host || "")}" placeholder="z. B. Lars, Mary oder Lars &amp; Mary" maxlength="60">
       <datalist id="hostList"><option value="Lars"><option value="Mary"><option value="Lars &amp; Mary"></datalist></div>
-    <div class="grid2 mt"><div><label for="fTitle">Titel</label><input id="fTitle" value="${esc(ev?.title || "Pizzaabend")}" placeholder="z. B. Mädelsabend" maxlength="60"></div>
-    <div><label for="fMax">Plätze</label><input type="number" id="fMax" min="1" max="40" value="${ev?.max_guests || 8}"></div></div>
-    <div class="mt"><label for="fNotes">Infos für alle (optional)</label><textarea id="fNotes" placeholder="z. B. Teig mache ich, bringt Belag mit!">${esc(ev?.notes || "")}</textarea></div>
+    <div class="grid2 mt"><div><label for="fTitle">Titel</label><input id="fTitle" value="${esc(src?.title || "Pizzaabend")}" placeholder="z. B. Mädelsabend" maxlength="60"></div>
+    <div><label for="fMax">Plätze</label><input type="number" id="fMax" min="1" max="40" value="${src?.max_guests || 8}"></div></div>
+    <div class="mt"><label for="fNotes">Infos für alle (optional)</label><textarea id="fNotes" placeholder="z. B. Teig mache ich, bringt Belag mit!">${esc(src?.notes || "")}</textarea></div>
     ${ev ? `<label class="mt" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="fClosed" style="width:auto" ${ev.closed?"checked":""}> Anmeldung schließen</label>` : ""}
     <div class="actions mt"><button class="btn" id="saveEvBtn" data-id="${ev?.id || ""}">Speichern</button>
     <button class="btn ghost" id="cancelEvBtn">Abbrechen</button>
+    ${ev ? `<button class="btn ghost" id="copyEvBtn" data-id="${ev.id}">⧉ Kopieren</button>` : ""}
     ${ev ? `<button class="btn ghost" style="color:var(--danger);margin-left:auto" id="delEvBtn" data-id="${ev.id}">Löschen</button>` : ""}</div></div>`;
 }
 
@@ -492,7 +605,15 @@ document.addEventListener("click", async (e) => {
   if(t.id === "hostLink"){ e.preventDefault(); return hostLogin(); }
 
   if(t.id === "joinBtn"){ const n = needName(); if(!n) return;
-    return act(async()=>{ const r = await rpc("pz_join",{p_event:ev.id,p_name:n}); saveToken(r.id, r.token); }, "Du bist eingetragen 🍕"); }
+    return act(async()=>{ const r = await rpc("pz_join",{p_event:ev.id,p_name:n,p_plus:joinPlus,p_diet:joinDiet||null}); saveToken(r.id, r.token); joinPlus = 0; joinDiet = ""; }, "Du bist dabei 🍕 – tippe unten an, was du mitbringst"); }
+  if(t.dataset.opt){
+    const o = t.dataset.opt, who = t.dataset.who;
+    const cur = who === "join" ? { plus: joinPlus, diet: joinDiet } : (() => { const g = signups.find(x => x.id === who); return { plus: g?.plus || 0, diet: g?.diet || "" }; })();
+    if(o === "plus") cur.plus = (cur.plus + 1) % 3; else cur.diet = cur.diet === o ? "" : o;
+    if(who === "join"){ joinPlus = cur.plus; joinDiet = cur.diet; return render(); }
+    return act(()=>rpc("pz_update_signup",{p_id:who,p_token:tokens[who],p_plus:cur.plus,p_diet:cur.diet||null}), o === "plus" ? (cur.plus ? `+${cur.plus} Begleitung eingetragen` : "Ohne Begleitung") : "Gespeichert"); }
+  if(t.id === "calBtn"){ return addToCalendar(ev); }
+  if(t.id === "missBtn"){ return shareMissing(ev); }
   if(t.dataset.leave){ if(!confirm("Wirklich absagen?")) return;
     return act(async()=>{ await rpc("pz_leave",{p_id:t.dataset.leave,p_token:tokens[t.dataset.leave]}); dropToken(t.dataset.leave); }, "Abgesagt"); }
 
@@ -505,7 +626,12 @@ document.addEventListener("click", async (e) => {
     return act(async()=>{ const r = await rpc("pz_claim",{p_id:t.dataset.claim,p_person:n}); saveToken(r.id, r.token); }, "Danke, ist notiert!"); }
   if(t.dataset.unclaim){ return act(async()=>{ await rpc("pz_unclaim",{p_id:t.dataset.unclaim,p_token:tokens[t.dataset.unclaim]}); dropToken(t.dataset.unclaim); }, "Wieder freigegeben"); }
   if(t.dataset.catBring){ const n = needName(); if(!n) return; const c = CAT_FLAT[+t.dataset.catBring];
-    return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:c.n,p_category:c.c,p_qty:"",p_person:n}); saveToken(r.id, r.token); }, `Danke! ${c.n} ist eingetragen`); }
+    const g = CATALOG.find(x => x.items.includes(c));
+    const pool = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...items.filter(i => i.event_id === ev.id)];
+    const known = new Set(CAT_FLAT.flatMap(e => catMatch(e, pool).map(i => i.id)));
+    const lv = smartInfo(ev, pool, pool.filter(i => !known.has(i.id))).levels[g.id];
+    const msg = lv?.level === "plenty" ? `Eingetragen – Hinweis: ${g.name} gibt's schon reichlich (${lv.amount}×)` : `Danke! ${c.n} ist eingetragen`;
+    return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:c.n,p_category:c.c,p_qty:"",p_person:n}); saveToken(r.id, r.token); }, msg); }
 
   if(t.id === "waBtn" || t.id === "copyBtn"){
     const url = location.origin + location.pathname + "?e=" + ev.id;
@@ -519,9 +645,10 @@ document.addEventListener("click", async (e) => {
 
   // Gastgeber
   if(t.id === "logoutBtn"){ isAdmin = false; adminKey = ""; ls.set("pz_admin",""); editing = false; return load(true); }
-  if(t.id === "newEvBtn"){ editing = "new"; return render(); }
+  if(t.id === "newEvBtn"){ editing = "new"; copyFrom = null; return render(); }
+  if(t.id === "copyEvBtn"){ copyFrom = events.find(x => x.id === t.dataset.id); editing = "new"; render(); window.scrollTo({top:0,behavior:"smooth"}); return toast("Kopie – Datum anpassen und speichern"); }
   if(t.dataset.editEv){ editing = t.dataset.editEv; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
-  if(t.id === "cancelEvBtn"){ editing = false; return render(); }
+  if(t.id === "cancelEvBtn"){ editing = false; copyFrom = null; return render(); }
   if(t.id === "saveEvBtn"){
     const id = t.dataset.id || null; const date = document.getElementById("fDate").value; if(!date) return toast("Datum fehlt");
     return act(async()=>{
@@ -529,7 +656,7 @@ document.addEventListener("click", async (e) => {
         p_title:document.getElementById("fTitle").value,p_max:parseInt(document.getElementById("fMax").value)||8,
         p_notes:document.getElementById("fNotes").value,p_closed:!!document.getElementById("fClosed")?.checked,
         p_host:document.getElementById("fHost").value});
-      selected = newId; editing = false;
+      selected = newId; editing = false; copyFrom = null;
     }, "Termin gespeichert"); }
   if(t.id === "delEvBtn"){ if(!confirm("Termin mit allen Anmeldungen und Einträgen löschen?")) return;
     return act(async()=>{ await rpc("pz_admin_delete_event",{p_key:adminKey,p_id:t.dataset.id}); selected = null; editing = false; }, "Termin gelöscht"); }
@@ -545,6 +672,38 @@ document.addEventListener("click", async (e) => {
   if(t.dataset.admIds){ return act(async()=>{ for(const id of t.dataset.admIds.split(",")) await rpc("pz_admin_remove",{p_key:adminKey,p_kind:"item",p_id:id}); }, "Entfernt"); }
   if(t.dataset.adm){ return act(()=>rpc("pz_admin_remove",{p_key:adminKey,p_kind:t.dataset.adm,p_id:t.dataset.id}), "Entfernt"); }
 });
+
+function addToCalendar(ev){
+  const [h, m] = (ev.event_time || "19:00").split(":").map(Number);
+  const pad = n => String(n).padStart(2, "0");
+  const d = ev.event_date.replace(/-/g, "");
+  const start = `${d}T${pad(h)}${pad(m)}00`, end = `${d}T${pad(Math.min(h + 4, 23))}${pad(m)}00`;
+  const url = location.origin + location.pathname + "?e=" + ev.id;
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Pizzaabend//DE","BEGIN:VEVENT",
+    `UID:${ev.id}@pizzaabend`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").slice(0,15)}Z`,
+    `DTSTART:${start}`, `DTEND:${end}`, `SUMMARY:🍕 ${ev.title}${ev.host ? " bei " + ev.host : ""}`,
+    `DESCRIPTION:Wer bringt was mit? ${url}`, `URL:${url}`,
+    "BEGIN:VALARM","TRIGGER:-P1D","ACTION:DISPLAY","DESCRIPTION:Morgen ist Pizzaabend – schon eingekauft?","END:VALARM",
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+  a.download = "pizzaabend.ics"; document.body.appendChild(a); a.click(); a.remove();
+  toast("Kalendereintrag mit Erinnerung am Vortag");
+}
+function shareMissing(ev){
+  const pool = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...items.filter(i => i.event_id === ev.id)];
+  const known = new Set(CAT_FLAT.flatMap(e => catMatch(e, pool).map(i => i.id)));
+  const smart = smartInfo(ev, pool, pool.filter(i => !known.has(i.id)));
+  const need = pool.filter(i => i.kind === "bedarf" && !i.person).map(i => i.name);
+  const basics = BASICS.filter(e => !entryState(e, pool).covered).map(e => e.n);
+  const low = CATALOG.filter(g => smart.levels[g.id].level === "low").map(g => g.name);
+  const list = [...new Set([...need, ...basics])];
+  const url = location.origin + location.pathname + "?e=" + ev.id;
+  const text = `🍕 ${ev.title} am ${fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'})}:` +
+    (list.length ? ` Es fehlt noch ${list.join(", ")}.` : "") + (low.length ? ` Knapp ist noch: ${low.join(", ")}.` : "") +
+    ` Wer bringt was mit? Einfach antippen: ${url}`;
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+}
 
 function similar(name, ev){
   const n = name.toLowerCase();
