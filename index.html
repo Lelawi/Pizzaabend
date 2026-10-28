@@ -115,7 +115,7 @@ ul.items li{display:flex;align-items:center;gap:10px;padding:6px 0;min-height:44
 .ico{font-size:20px;width:26px;text-align:center;flex:0 0 auto}
 .im{flex:1;min-width:0}
 .im .t{font-weight:500;font-size:15px;line-height:1.25}
-.im .s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.im .s{font-size:12.5px;color:var(--muted)}
 .im .who{font-size:12.5px;color:var(--basil);font-weight:600}
 .basis{font-size:10.5px;font-weight:600;color:var(--crust);border:1px solid var(--crust);border-radius:6px;padding:0 4px;margin-left:5px;vertical-align:2px;opacity:.8}
 .needed{font-size:10.5px;font-weight:600;color:#fff;background:var(--tomato);border-radius:6px;padding:1px 5px;margin-left:5px;vertical-align:2px}
@@ -482,7 +482,7 @@ function planFor(ev){
   if(!ev) return null;
   const { used } = seatSplit(ev);
   const hosts = ev.host && /&|\bund\b|,/.test(ev.host) ? 2 : 1;
-  const final = ev.closed || isPast(ev) || daysUntil(ev) <= 2;      // kurz vorher: nur wer wirklich angemeldet ist
+  const final = ev.closed || isPast(ev);      // Anmeldung geschlossen: echte Gästezahl, sonst alle Plätze
   return { people: (final ? used : Math.max(used, ev.max_guests)) + hosts, final };
 }
 function parseQty(q, m){
@@ -622,7 +622,7 @@ function zutatenCard(ev, open){
     </details>` : "";
 
   return `<div class="card">
-    <div class="zhead"><h2>Zutaten</h2><span class="zsum">${PLAN ? `geplant für ${PLAN.people} Personen${PLAN.final ? "" : " (alle Plätze)"}` : "Tippe an, was du mitbringst"}</span></div>
+    <div class="zhead"><h2>Zutaten</h2><span class="zsum">${PLAN ? `geplant für ${PLAN.people} ${PLAN.people === 1 ? "Person" : "Personen"}${PLAN.final ? "" : " (alle Plätze)"}` : "Tippe an, was du mitbringst"}</span></div>
     ${isAdmin && ev && open ? `<div class="actions" style="margin-top:8px"><button class="btn ghost small" id="missBtn">📋 Was fehlt – in WhatsApp</button></div>` : ""}
     <div class="basics" aria-label="Basis-Zutaten">${basicsHtml}</div>
     ${smart && smart.hints.length ? `<ul class="hints">${smart.hints.map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
