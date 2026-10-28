@@ -122,6 +122,7 @@ ul.items li{display:flex;align-items:center;gap:10px;padding:6px 0;min-height:44
 li.done .t{color:var(--muted)}
 .right{display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .ok{color:var(--basil);font-size:13px;font-weight:600;white-space:nowrap}
+.short{color:var(--tomato);font-size:13px;font-weight:600;white-space:nowrap}
 details.custom{border-top:1px solid var(--line);padding-top:12px}
 details.custom>summary{font-weight:600;color:var(--tomato)}
 
@@ -412,7 +413,8 @@ function groupLevel(g, pool, others, people){
 }
 function smartInfo(ev, pool, others){
   const { confirmed, used } = seatSplit(ev);
-  const people = Math.max(used, 1) + 1;   // Gäste + Gastgeber
+  PLAN = planFor(ev);
+  const people = PLAN.people;
   const levels = Object.fromEntries(CATALOG.map(g => [g.id, groupLevel(g, pool, others, people)]));
   const hints = [];
   const needOpen = pool.filter(i => i.kind === "bedarf" && !i.person);
@@ -426,6 +428,10 @@ function smartInfo(ev, pool, others){
       hints.push(`${g.icon} ${g.name} gibt's schon reichlich (${l.amount}×)${low ? ` – vielleicht lieber ${low.name}?` : ""}`);
     }
   }
+  const shortList = CAT_FLAT.map(e => ({ e, st: entryState(e, pool) }))
+    .filter(x => x.st.meter && !x.st.meter.ok && (x.st.have.length || x.st.bring.length))
+    .map(x => `~${fmtAmt(x.st.meter.need - x.st.meter.got, x.st.meter.m)} ${x.e.n.replace("Frisches ","")}`);
+  if(shortList.length) hints.push(`📏 Für ${people} Personen fehlt noch: ${shortList.join(", ")}`);
   const veg = confirmed.filter(g => g.diet).length;
   if(veg && levels.gemuese.amount < Math.max(2, veg)) hints.push(`🥦 ${veg} ${veg === 1 ? "Gast isst" : "Gäste essen"} vegetarisch – Gemüse-Belag ist noch knapp`);
   if(used >= 3 && levels.getraenke.level === "low") hints.push(levels.getraenke.amount
@@ -437,7 +443,8 @@ function smartInfo(ev, pool, others){
   const seen = new Set();
   const add = (e, claimId) => { if(sugg.length < 4 && !seen.has(e.n)){ seen.add(e.n); sugg.push({ e, claimId }); } };
   for(const e of CAT_FLAT){ const st = entryState(e, pool); if(st.need) add(e, st.need.id); }
-  let nb = 0; for(const e of BASICS){ if(nb < 2 && !entryState(e, pool).covered){ add(e); nb++; } }
+  const basicsOrder = [...BASICS].sort((a, b) => (!!entryState(b, pool).meter) - (!!entryState(a, pool).meter));   // Mengen zuerst
+  let nb = 0; for(const e of basicsOrder){ if(nb < 2 && !entryState(e, pool).covered){ add(e); nb++; } }
   const vegGuests = confirmed.filter(g => g.diet).length;
   const lowGroups = CATALOG.filter(g => levels[g.id].level === "low" && !g.multi)
     .sort((a, b) => (vegGuests ? (b.id === "gemuese") - (a.id === "gemuese") : 0) || (levels[a.id].amount / levels[a.id].target) - (levels[b.id].amount / levels[b.id].target));
@@ -461,23 +468,76 @@ function catMatch(entry, pool){
     return entry.k.some(k => n.includes(k));
   });
 }
+// ---------- Mengen: Bedarf nach Personenzahl ----------
+// per = Menge pro Person · def = angenommene Menge, wenn ein Gast nichts angibt · packs = übliche Packungsgrößen
+const METER = {
+  "Pizzateig":          { per: 1,   unit: "count", label: "Teiglinge", def: 4, gPer: 250, packs: { teigling: 1, ballen: 1, kugel: 1, "stück": 1, stk: 1, portion: 1 } },
+  "Tomatensauce":       { per: 80,  unit: "g", def: 400, packs: { dose: 400, glas: 500, "gläser": 500, flasche: 700, packung: 500, tetra: 500 } },
+  "Mozzarella":         { per: 100, unit: "g", def: 250, packs: { kugel: 125, rolle: 400, stange: 400, block: 400, packung: 250, beutel: 250 } },
+  "Frisches Basilikum": { per: 1/6, unit: "count", label: "Töpfe", def: 1, packs: { topf: 1, "töpfe": 1, bund: 1 } }
+};
+let PLAN = null;   // { people, final } für den gerade angezeigten Termin
+function daysUntil(ev){ return Math.round((new Date(ev.event_date + "T00:00") - today) / 864e5); }
+function planFor(ev){
+  if(!ev) return null;
+  const { used } = seatSplit(ev);
+  const hosts = ev.host && /&|\bund\b|,/.test(ev.host) ? 2 : 1;
+  const final = ev.closed || isPast(ev) || daysUntil(ev) <= 2;      // kurz vorher: nur wer wirklich angemeldet ist
+  return { people: (final ? used : Math.max(used, ev.max_guests)) + hosts, final };
+}
+function parseQty(q, m){
+  if(!q) return null;
+  const s = String(q).toLowerCase().replace(",", ".");
+  const hit = s.match(/\d+(\.\d+)?/); const n = hit ? parseFloat(hit[0]) : 1;
+  if(/kg/.test(s)) return m.unit === "g" ? n * 1000 : (m.gPer ? n * 1000 / m.gPer : null);
+  if(/\d\s*g\b|gramm/.test(s)) return m.unit === "g" ? n : (m.gPer ? n / m.gPer : null);
+  for(const [k, v] of Object.entries(m.packs)) if(s.includes(k)) return n * v;
+  return hit ? (m.unit === "g" ? n * m.def : n) : null;
+}
+function fmtAmt(v, m){
+  if(m.unit === "g"){
+    if(v >= 1000) return (Math.round(v / 100) / 10).toString().replace(".", ",") + " kg";
+    return Math.max(50, Math.round(v / 50) * 50) + " g";
+  }
+  const c = Math.max(1, Math.ceil(v - 0.01));
+  return c + " " + (c === 1 ? m.label.replace(/e$/, "").replace("Töpfe", "Topf").replace("Teiglinge","Teigling") : m.label);
+}
+function meterState(entry, have, bring){
+  const m = METER[entry.n]; if(!m || !PLAN) return null;
+  const need = PLAN.people * m.per;
+  let got = 0, unknown = false;
+  for(const i of have){ const v = parseQty(i.qty, m); if(v == null) unknown = true; else got += v; }
+  for(const i of bring){ const v = parseQty(i.qty, m); got += v == null ? m.def : v; }
+  return { m, need, got, unknown, ok: unknown || got >= need * 0.95 };
+}
+
 function entryState(entry, pool){
   const hits = catMatch(entry, pool);
   const have = hits.filter(i => i.kind === "vorrat");
   const bring = hits.filter(i => i.kind === "mitbringsel" || (i.kind === "bedarf" && i.person));
   const need = hits.find(i => i.kind === "bedarf" && !i.person);
   const mine = bring.find(i => tokens[i.id]);
-  return { hits, have, bring, need, mine, covered: have.length > 0 || bring.length > 0 };
+  const meter = meterState(entry, have, bring);
+  const any = have.length > 0 || bring.length > 0;
+  return { hits, have, bring, need, mine, meter, covered: meter ? any && meter.ok : any };
 }
 const whoText = list => list.map(i => tokens[i.id] ? "du" : i.person).join(", ");
 
 function itemRow({ icon, name, tip, basis, st, multi, idx, ev, open, extra }){
-  let status = "";
-  if(st.have.length) status = `<span class="ok">✓ da${st.have[0].qty ? ` · ${esc(st.have[0].qty)}` : ""}</span>`;
-  let who = st.bring.length ? `<div class="who">🙋 ${esc(whoText(st.bring))}</div>` : "";
+  let status = "", sub = "";
+  const mt = st.meter;
+  if(mt && (st.have.length || st.bring.length)){
+    status = mt.unknown ? `<span class="ok">✓ da</span>`
+      : mt.ok ? `<span class="ok">✓ ${esc(fmtAmt(mt.got, mt.m))}</span>`
+      : `<span class="short">${esc(fmtAmt(mt.got, mt.m))} / ${esc(fmtAmt(mt.need, mt.m))}</span>`;
+  } else if(st.have.length) status = `<span class="ok">✓ da${st.have[0].qty ? ` · ${esc(st.have[0].qty)}` : ""}</span>`;
+  if(mt) sub = mt.unknown
+    ? `Bedarf für ${PLAN.people} Pers.: ~${fmtAmt(mt.need, mt.m)} · ${isAdmin ? "Menge eintragen ✎" : "Menge noch offen"}`
+    : `Bedarf für ${PLAN.people} Pers.: ~${fmtAmt(mt.need, mt.m)}${!mt.ok && (st.have.length || st.bring.length) ? ` · fehlt ~${fmtAmt(mt.need - mt.got, mt.m)}` : ""}`;
+  let who = st.bring.length ? `<div class="who">🙋 ${esc(st.bring.map(i => (tokens[i.id] ? "du" : i.person) + (mt && i.qty ? ` (${i.qty})` : "")).join(", "))}</div>` : "";
   let btns = "";
   if(isAdmin){
-    if(st.have.length) btns += `<button class="x" aria-label="Aus dem Vorrat entfernen" data-adm-ids="${st.have.map(i=>i.id).join(",")}">×</button>`;
+    if(st.have.length) btns += `<button class="x" aria-label="Menge ändern" data-qty-adm="${st.have[0].id}" data-qty-cur="${esc(st.have[0].qty || "")}">✎</button><button class="x" aria-label="Aus dem Vorrat entfernen" data-adm-ids="${st.have.map(i=>i.id).join(",")}">×</button>`;
     else if(st.need) btns += `<button class="x" aria-label="Nicht mehr gebraucht" data-adm-ids="${st.need.id}">×</button>`;
     else if(idx != null){
       btns += `<button class="btn ghost small" data-cat-have="${idx}">Ist da</button>`;
@@ -485,25 +545,28 @@ function itemRow({ icon, name, tip, basis, st, multi, idx, ev, open, extra }){
     }
     if(extra && !st.have.length && !st.need) btns += `<button class="x" aria-label="Löschen" data-adm-ids="${extra.id}">×</button>`;
   } else if(ev && open){
-    if(st.mine) btns += st.mine.kind === "bedarf"
+    if(st.mine) btns += (mt && st.mine.kind === "mitbringsel" ? `<button class="x" aria-label="Menge ändern" data-qty-mine="${st.mine.id}" data-qty-cur="${esc(st.mine.qty || "")}">✎</button>` : "") + (st.mine.kind === "bedarf"
       ? `<button class="btn ghost small" data-unclaim="${st.mine.id}">Doch nicht</button>`
-      : `<button class="btn ghost small" data-rm="${st.mine.id}">Doch nicht</button>`;
+      : `<button class="btn ghost small" data-rm="${st.mine.id}">Doch nicht</button>`);
     else if(st.need) btns += `<button class="btn small" data-claim="${st.need.id}">Bringe ich</button>`;
-    else if(idx != null && !st.have.length && (!st.bring.length || multi)) btns += `<button class="btn ghost small" data-cat-bring="${idx}">${st.bring.length ? "Ich auch" : "Bringe ich"}</button>`;
+    else if(idx != null && mt && !st.covered) btns += `<button class="btn ghost small" data-cat-bring="${idx}">${st.have.length || st.bring.length ? "Rest bringe ich" : "Bringe ich"}</button>`;
+    else if(idx != null && !mt && !st.have.length && (!st.bring.length || multi)) btns += `<button class="btn ghost small" data-cat-bring="${idx}">${st.bring.length ? "Ich auch" : "Bringe ich"}</button>`;
   }
   const flags = (basis ? `<span class="basis">Basis</span>` : "") + (st.need ? `<span class="needed">fehlt</span>` : "");
   return `<li class="${st.covered && !multi ? "done" : ""}"><span class="ico" aria-hidden="true">${icon}</span>
-    <div class="im"><div class="t">${esc(name)}${flags}</div>${who}${tip && !who ? `<div class="s">${esc(tip)}</div>` : ""}</div>
+    <div class="im"><div class="t">${esc(name)}${flags}</div>${who}${sub ? `<div class="s">${esc(sub)}</div>` : ""}</div>
     <div class="right">${status}${btns}</div></li>`;
 }
 
 function zutatenCard(ev, open){
+  PLAN = planFor(ev);
   const pool = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...(ev ? items.filter(i => i.event_id === ev.id) : [])];
 
   // Basis-Übersicht
   const basicsHtml = BASICS.map(e => {
     const st = entryState(e, pool);
-    return `<span class="bp ${st.covered ? "" : "miss"}">${st.covered ? "✓" : "○"} ${esc(e.n.replace("Frisches ",""))}</span>`;
+    const half = !st.covered && st.meter && st.meter.got > 0;
+    return `<span class="bp ${st.covered ? "" : "miss"}">${st.covered ? "✓" : half ? "◐" : "○"} ${esc(e.n.replace("Frisches ",""))}</span>`;
   }).join("");
 
   // Einträge, die zu keinem Listeneintrag passen
@@ -559,7 +622,7 @@ function zutatenCard(ev, open){
     </details>` : "";
 
   return `<div class="card">
-    <div class="zhead"><h2>Zutaten</h2><span class="zsum">${totalNeeded ? `${totalNeeded} wird noch gebraucht` : "Tippe an, was du mitbringst"}</span></div>
+    <div class="zhead"><h2>Zutaten</h2><span class="zsum">${PLAN ? `geplant für ${PLAN.people} Personen${PLAN.final ? "" : " (alle Plätze)"}` : "Tippe an, was du mitbringst"}</span></div>
     ${isAdmin && ev && open ? `<div class="actions" style="margin-top:8px"><button class="btn ghost small" id="missBtn">📋 Was fehlt – in WhatsApp</button></div>` : ""}
     <div class="basics" aria-label="Basis-Zutaten">${basicsHtml}</div>
     ${smart && smart.hints.length ? `<ul class="hints">${smart.hints.map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
@@ -639,8 +702,15 @@ document.addEventListener("click", async (e) => {
     const pool = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...items.filter(i => i.event_id === ev.id)];
     const known = new Set(CAT_FLAT.flatMap(e => catMatch(e, pool).map(i => i.id)));
     const lv = smartInfo(ev, pool, pool.filter(i => !known.has(i.id))).levels[g.id];
-    const msg = lv?.level === "plenty" ? `Eingetragen – Hinweis: ${g.name} gibt's schon reichlich (${lv.amount}×)` : `Danke! ${c.n} ist eingetragen`;
-    return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:c.n,p_category:c.c,p_qty:"",p_person:n}); saveToken(r.id, r.token); }, msg); }
+    const st = entryState(c, pool);
+    const qty = st.meter && !st.meter.unknown ? "~" + fmtAmt(Math.max(st.meter.need - st.meter.got, st.meter.m.unit === "g" ? 100 : 1), st.meter.m) : "";
+    const msg = lv?.level === "plenty" ? `Eingetragen – Hinweis: ${g.name} gibt's schon reichlich (${lv.amount}×)` : `Danke! ${qty ? qty + " " : ""}${c.n} ist eingetragen${qty ? " – Menge änderbar mit ✎" : ""}`;
+    return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:c.n,p_category:c.c,p_qty:qty,p_person:n}); saveToken(r.id, r.token); }, msg); }
+  if(t.dataset.qtyAdm || t.dataset.qtyMine){
+    const v = prompt("Menge, z. B. 1 kg, 2 Rollen, 3 Kugeln, 10 Teiglinge:", t.dataset.qtyCur || ""); if(v === null) return;
+    return act(() => t.dataset.qtyAdm
+      ? rpc("pz_admin_set_qty",{p_key:adminKey,p_id:t.dataset.qtyAdm,p_qty:v})
+      : rpc("pz_set_qty",{p_id:t.dataset.qtyMine,p_token:tokens[t.dataset.qtyMine],p_qty:v}), "Menge gespeichert"); }
 
   if(t.id === "waBtn" || t.id === "copyBtn"){
     const url = location.origin + location.pathname + "?e=" + ev.id;
