@@ -559,6 +559,9 @@ document.addEventListener("input", e => { if(e.target.id === "nameInput"){ myNam
 
 // Start + regelmäßig aktualisieren (nur wenn sich etwas geändert hat und niemand tippt)
 (async () => {
+  // Persönlicher Gastgeber-Link: …/Pizzaabend/#gastgeber-SCHLÜSSEL (bleibt in der Adresse, damit Lesezeichen und Homescreen-Symbol ihn behalten)
+  const hk = location.hash.match(/gastgeber-([A-Za-z0-9_-]+)/);
+  if(hk){ adminKey = hk[1]; ls.set("pz_admin", adminKey); }
   if(adminKey){ try{ isAdmin = await rpc("pz_admin_check",{p_key:adminKey}); }catch(_){ } }
   load(true).catch(e => { document.getElementById("main").innerHTML = `<div class="card"><p>Konnte nicht laden: ${esc(e.message)}</p></div>`; });
 })();
