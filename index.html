@@ -177,13 +177,13 @@ const CAT_ICON = {"Teig & Mehl":"🌾","Sauce":"🥫","Käse":"🧀","Belag":"�
 // ---------- Zutatenliste ----------
 // n Name · i Symbol · c Kategorie · k Suchbegriffe · x Ausschlüsse · t kurzer Tipp · b Basis · multi: jeder darf mitbringen
 const CATALOG = [
-  { id:"basis", cats:["Teig & Mehl","Sauce"], ex:"z. B. Pizzasauce, Mehl", name:"Teig & Sauce", icon:"🫓", items:[
+  { id:"basis", cats:["Teig & Mehl","Sauce"], ex:"Mehl", name:"Teig & Sauce", icon:"🫓", items:[
     { n:"Pizzateig", i:"🫓", c:"Teig & Mehl", k:["teig"], t:"ca. 250 g pro Pizza", b:1 },
     { n:"Tomatensauce", i:"🍅", c:"Sauce", k:["tomatensauce","tomatensoße","tomatensosse","passata","pelati","san marzano"], t:"dick, nicht wässrig", b:1 },
     { n:"Hartweizengrieß", i:"🌾", c:"Teig & Mehl", k:["grieß","griess","semola"], t:"zum Ausrollen, damit nichts klebt", b:1 },
     { n:"Olivenöl", i:"🫗", c:"Sonstiges", k:["olivenöl","olivenoel"], b:1 }
   ]},
-  { id:"kaese", cats:["Käse"], ex:"z. B. Büffelmozzarella", name:"Käse", icon:"🧀", items:[
+  { id:"kaese", cats:["Käse"], ex:"Feta", name:"Käse", icon:"🧀", items:[
     { n:"Mozzarella", i:"🧀", c:"Käse", k:["mozzarella","pizzakäse"], x:["burrata"], t:"💧 Pizza-Mozzarella am Stück ist trockener als Kugeln aus der Lake", b:1 },
     { n:"Parmesan", i:"🧀", c:"Käse", k:["parmesan","grana","pecorino"], t:"nach dem Backen drüberhobeln", b:1 },
     { n:"Burrata", i:"🤍", c:"Käse", k:["burrata"], t:"erst nach dem Backen drauf" },
@@ -192,7 +192,7 @@ const CATALOG = [
     { n:"Ziegenkäse", i:"🐐", c:"Käse", k:["ziegenkäse"] },
     { n:"Fior di Latte (Kuhmilch-Mozzarella)", i:"🥛", c:"Käse", k:["fior di latte"], t:"💧 vorher gut abtropfen" }
   ]},
-  { id:"fleisch", cats:["Belag"], ex:"z. B. Hähnchen, Speck", name:"Fleisch & Fisch", icon:"🥓", items:[
+  { id:"fleisch", cats:["Belag"], ex:"Hähnchen", name:"Fleisch & Fisch", icon:"🥓", items:[
     { n:"Salami", i:"🍕", c:"Belag", k:["salami","spianata"] },
     { n:"Kochschinken", i:"🍖", c:"Belag", k:["kochschinken","prosciutto cotto"] },
     { n:"Rohschinken (Prosciutto)", i:"🥩", c:"Belag", k:["rohschinken","parmaschinken","serrano","prosciutto"], x:["cotto"], t:"erst nach dem Backen drauf" },
@@ -201,7 +201,7 @@ const CATALOG = [
     { n:"Garnelen", i:"🦐", c:"Belag", k:["garnele","shrimp","scampi"], t:"💧 trocken tupfen" },
     { n:"Sardellen", i:"🐠", c:"Belag", k:["sardelle"] }
   ]},
-  { id:"gemuese", cats:["Gemüse & Kräuter"], ex:"z. B. Ananas, Aubergine", name:"Gemüse", icon:"🥬", items:[
+  { id:"gemuese", cats:["Gemüse & Kräuter"], ex:"Ananas", name:"Gemüse", icon:"🥬", items:[
     { n:"Champignons", i:"🍄", c:"Gemüse & Kräuter", k:["champignon","pilze"], t:"💧 hauchdünn schneiden" },
     { n:"Zwiebeln", i:"🧅", c:"Gemüse & Kräuter", k:["zwiebel"] },
     { n:"Paprika", i:"🫑", c:"Gemüse & Kräuter", k:["paprika"] },
@@ -215,7 +215,7 @@ const CATALOG = [
     { n:"Mais", i:"🌽", c:"Gemüse & Kräuter", k:["mais"], t:"💧 abtropfen" },
     { n:"Knoblauch", i:"🧄", c:"Gemüse & Kräuter", k:["knoblauch"] }
   ]},
-  { id:"extras", cats:["Sonstiges"], ex:"z. B. Trüffelöl", name:"Kräuter & Extras", icon:"🌿", items:[
+  { id:"extras", cats:["Sonstiges"], ex:"Trüffelöl", name:"Kräuter & Extras", icon:"🌿", items:[
     { n:"Frisches Basilikum", i:"🌿", c:"Gemüse & Kräuter", k:["basilikum"], t:"erst nach dem Backen drauf", b:1 },
     { n:"Oregano", i:"🍂", c:"Gemüse & Kräuter", k:["oregano"] },
     { n:"Chiliöl / Chiliflocken", i:"🌶️", c:"Sonstiges", k:["chili"] },
@@ -223,13 +223,13 @@ const CATALOG = [
     { n:"Kapern", i:"🟢", c:"Gemüse & Kräuter", k:["kapern"] },
     { n:"Pesto", i:"🥣", c:"Sauce", k:["pesto"] }
   ]},
-  { id:"getraenke", cats:["Getränke"], ex:"z. B. Aperol, Saft", name:"Getränke", icon:"🥤", multi:1, note:"Bitte jeder ein bisschen was – dann muss niemand alles in den 4. Stock schleppen.", items:[
+  { id:"getraenke", cats:["Getränke"], ex:"Aperol", name:"Getränke", icon:"🥤", multi:1, note:"Bitte jeder ein bisschen was – dann muss niemand alles in den 4. Stock schleppen.", items:[
     { n:"Bier", i:"🍺", c:"Getränke", k:["bier"], multi:1 },
     { n:"Wein", i:"🍷", c:"Getränke", k:["wein"], multi:1 },
     { n:"Softdrinks", i:"🥤", c:"Getränke", k:["softdrink","limo","cola","spezi","saft"], multi:1 },
     { n:"Wasser", i:"💧", c:"Getränke", k:["wasser"], multi:1 }
   ]},
-  { id:"dessert", cats:["Dessert"], ex:"z. B. Eis", name:"Nachtisch", icon:"🍰", items:[
+  { id:"dessert", cats:["Dessert"], ex:"Eis", name:"Nachtisch", icon:"🍰", items:[
     { n:"Nutella (Dessert-Pizza)", i:"🍫", c:"Dessert", k:["nutella"] },
     { n:"Nachtisch (z. B. Tiramisu)", i:"🍰", c:"Dessert", k:["tiramisu","dessert","nachtisch"] }
   ]}
@@ -567,7 +567,7 @@ function customState(i){
 }
 function addRow(g, ev, open){
   if(!isAdmin && !(ev && open)) return "";
-  return `<div class="addrow"><input id="add-${g.id}" placeholder="Fehlt was? ${esc(g.ex)}" maxlength="60" aria-label="Eigene Zutat für ${esc(g.name)}" enterkeyhint="done">
+  return `<div class="addrow"><input id="add-${g.id}" placeholder="z. B. ${esc(g.ex)} …" maxlength="60" aria-label="Eigene Zutat für ${esc(g.name)}" enterkeyhint="done">
     ${isAdmin
       ? `<button class="btn ghost small" data-add-grp="${g.id}" data-add-kind="vorrat">Ist da</button>${ev && open ? `<button class="btn ghost small" data-add-grp="${g.id}" data-add-kind="bedarf">Fehlt</button>` : ""}`
       : `<button class="btn small" data-add-grp="${g.id}" data-add-kind="mitbringsel">+ Bringe ich</button>`}</div>`;
