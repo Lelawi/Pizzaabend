@@ -8,103 +8,130 @@
 <meta property="og:title" content="🍕 Pizzaabend">
 <meta property="og:description" content="Anmelden und absprechen, wer was mitbringt.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍕</text></svg>">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Pizzaabend">
+<meta name="theme-color" content="#c8412b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#fbf6ee; --card:#fffdf9; --ink:#2a1f17; --muted:#7a6a5c; --line:#ecdfcc;
+  --bg:#fbf6ee; --card:#fffdf9; --ink:#2a1f17; --muted:#7a6a5c; --line:#ecdfcc; --soft:#f5ece0;
   --tomato:#c8412b; --tomato-ink:#fff; --basil:#3f7a3a; --basil-soft:#e6f0e2;
   --cheese:#f3c94b; --cheese-soft:#fcf1cf; --crust:#b9773a; --danger:#b3261e;
   --shadow:0 1px 2px rgba(60,30,10,.06),0 6px 20px rgba(60,30,10,.06);
   --r:16px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#1a1410; --card:#241c16; --ink:#f4ebe0; --muted:#b4a392; --line:#3a2e24;
+  --bg:#1a1410; --card:#241c16; --ink:#f4ebe0; --muted:#b4a392; --line:#3a2e24; --soft:#2d241c;
   --tomato:#e05a41; --basil:#7fbf74; --basil-soft:#24321f; --cheese:#f3c94b; --cheese-soft:#3a3016;
   --crust:#d79a5c; --danger:#ff8a80; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25);
+  color-scheme:dark;
 }}
 *{box-sizing:border-box}
 html,body{margin:0}
+html{overflow-anchor:auto}
 body{background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
-  padding:0 16px calc(40px + env(safe-area-inset-bottom))}
+  padding:0 max(16px,env(safe-area-inset-left)) calc(40px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-right))}
 .wrap{max-width:620px;margin:0 auto}
-header{padding:28px 0 8px;display:flex;align-items:center;gap:12px}
-header .logo{font-size:40px;line-height:1}
-h1{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:30px;margin:0;letter-spacing:-.01em}
+header{padding:22px 0 4px;display:flex;align-items:center;gap:12px}
+header .logo{font-size:34px;line-height:1}
+h1{font-family:Fraunces,Georgia,serif;font-weight:800;font-size:28px;margin:0;letter-spacing:-.01em}
 .sub{color:var(--muted);font-size:14px;margin:2px 0 0}
-h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:20px;margin:0 0 10px}
-h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 8px;font-weight:600}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin:14px 0}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}
+h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:20px;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin:12px 0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.chips:empty{display:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:500 14px Inter,sans-serif;cursor:pointer}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 13px;font:500 14px Inter,sans-serif;cursor:pointer}
 .chip.on{background:var(--tomato);border-color:var(--tomato);color:var(--tomato-ink)}
 .chip.past{opacity:.6}
+
+/* Termin */
 .when-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.when-row .btn{flex:0 0 auto;margin-top:4px}
-.when{font-family:Fraunces,Georgia,serif;font-size:26px;font-weight:800;margin:0}
-.time{color:var(--muted);margin:2px 0 10px}
-.notes{background:var(--cheese-soft);border-radius:12px;padding:10px 12px;margin:10px 0 0;white-space:pre-wrap;font-size:15px}
-.seats{display:flex;align-items:center;gap:10px;margin:12px 0 4px}
-.dots{display:flex;flex-wrap:wrap;gap:5px}
-.dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.when-row .btn{flex:0 0 auto}
+.when{font-family:Fraunces,Georgia,serif;font-size:24px;font-weight:800;margin:0;line-height:1.15}
+.time{color:var(--muted);margin:2px 0 0;font-size:15px}
+.seats{display:flex;align-items:center;gap:10px;margin:12px 0 0;flex-wrap:wrap}
+.dots{display:flex;flex-wrap:wrap;gap:4px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
 .dot.full{background:var(--tomato)}
 .seats-txt{font-size:14px;color:var(--muted)}
+.notes{background:var(--cheese-soft);border-radius:12px;padding:9px 12px;margin:12px 0 0;white-space:pre-wrap;font-size:15px}
+.hint{font-size:14px;color:var(--muted);margin:10px 0 0}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:14px;background:var(--soft);border-radius:999px;padding:4px 10px}
+.pill.me{background:var(--basil-soft);color:var(--basil);font-weight:600}
+.pill.wait{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.pill .x{font-size:16px;padding:0 0 0 2px}
+.wait-label{font-size:12px;color:var(--muted);align-self:center;margin-left:4px}
+.mebox{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--basil-soft);color:var(--basil);border-radius:12px;padding:9px 12px;margin-top:12px;font-weight:600;font-size:15px}
+.linkbtn{appearance:none;background:none;border:0;color:inherit;font:500 13px Inter,sans-serif;text-decoration:underline;cursor:pointer;padding:0;white-space:nowrap;opacity:.8}
+
+/* Formulare & Knöpfe */
 label{display:block;font-size:13px;color:var(--muted);margin:0 0 4px;font-weight:500}
-input,select,textarea{width:100%;font:16px Inter,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 12px;outline:none}
+input,select,textarea{width:100%;font:16px Inter,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--crust)}
 textarea{resize:vertical;min-height:64px}
 .row{display:flex;gap:8px;align-items:flex-end}
 .row>*{flex:1;min-width:0}
 .row>.shrink{flex:0 0 auto}
-.btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font:600 15px Inter,sans-serif;cursor:pointer;background:var(--tomato);color:var(--tomato-ink);white-space:nowrap}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{appearance:none;border:0;border-radius:12px;padding:11px 16px;font:600 15px Inter,sans-serif;cursor:pointer;background:var(--tomato);color:var(--tomato-ink);white-space:nowrap}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .btn.green{background:var(--basil);color:#fff}
-.btn.small{padding:7px 11px;font-size:13px;border-radius:10px}
-.btn.wide{width:100%}
+.btn.small{padding:6px 11px;font-size:13px;border-radius:10px}
 .btn:disabled{opacity:.5;cursor:default}
-.x{appearance:none;border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:8px}
+.btn:focus-visible,.chip:focus-visible,.linkbtn:focus-visible,summary:focus-visible{outline:2px solid var(--crust);outline-offset:2px}
+.x{appearance:none;border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:8px}
 .x:hover{color:var(--danger)}
-ul.list{list-style:none;margin:0;padding:0}
-ul.list li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
-ul.list li:first-child{border-top:0}
-.num{width:24px;height:24px;border-radius:50%;background:var(--cheese-soft);color:var(--crust);display:grid;place-items:center;font-size:12px;font-weight:600;flex:0 0 auto}
-.li-main{flex:1;min-width:0}
-.li-main .t{font-weight:500}
-.li-main .s{font-size:13px;color:var(--muted)}
-.me{font-size:11px;background:var(--basil-soft);color:var(--basil);border-radius:999px;padding:2px 8px;margin-left:6px;font-weight:600;vertical-align:middle}
-.wait .num{background:var(--line);color:var(--muted)}
-.tag{display:inline-block;font-size:12px;border-radius:999px;padding:2px 9px;background:var(--line);color:var(--muted)}
-.need li .t::before{content:"○ ";color:var(--tomato)}
-.need li.taken .t::before{content:"● ";color:var(--basil)}
-.have li .t::before{content:"✓ ";color:var(--basil);font-weight:600}
-.empty{color:var(--muted);font-size:14px;padding:6px 0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mt{margin-top:10px}
 .muted{color:var(--muted);font-size:14px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px)}
+
+/* Zutaten */
+.zhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.zsum{font-size:13px;color:var(--muted)}
+.basics{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 2px}
+.bp{font-size:12.5px;border-radius:999px;padding:3px 9px;background:var(--basil-soft);color:var(--basil);font-weight:600}
+.bp.miss{background:var(--cheese-soft);color:var(--crust)}
+details.tip{margin:10px 0 4px;font-size:14px}
+details.tip summary{font-weight:500;color:var(--muted)}
+details.tip p{margin:6px 0 0;background:var(--cheese-soft);border-radius:12px;padding:9px 12px}
+summary{cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+.grp{border-top:1px solid var(--line)}
+.grp>summary{display:flex;align-items:center;gap:10px;padding:12px 0}
+.grp>summary .gi{font-size:20px;width:26px;text-align:center;flex:0 0 auto}
+.grp>summary .gn{font-weight:600;flex:1;min-width:0}
+.grp>summary .gs{font-size:12.5px;color:var(--muted);text-align:right}
+.grp>summary .gs b{color:var(--crust);font-weight:600}
+.grp>summary::after{content:"▾";color:var(--muted);font-size:13px;transition:transform .15s}
+.grp[open]>summary::after{transform:rotate(180deg)}
+.sublabel{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin:2px 0 2px 36px}
+ul.items{list-style:none;margin:0 0 8px;padding:0}
+ul.items li{display:flex;align-items:center;gap:10px;padding:6px 0;min-height:44px}
+.ico{font-size:20px;width:26px;text-align:center;flex:0 0 auto}
+.im{flex:1;min-width:0}
+.im .t{font-weight:500;font-size:15px;line-height:1.25}
+.im .s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.im .who{font-size:12.5px;color:var(--basil);font-weight:600}
+.basis{font-size:10.5px;font-weight:600;color:var(--crust);border:1px solid var(--crust);border-radius:6px;padding:0 4px;margin-left:5px;vertical-align:2px;opacity:.8}
+.needed{font-size:10.5px;font-weight:600;color:#fff;background:var(--tomato);border-radius:6px;padding:1px 5px;margin-left:5px;vertical-align:2px}
+li.done .t{color:var(--muted)}
+.right{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.ok{color:var(--basil);font-size:13px;font-weight:600;white-space:nowrap}
+details.custom{border-top:1px solid var(--line);padding-top:12px}
+details.custom>summary{font-weight:600;color:var(--tomato)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);z-index:5}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .admin{border-color:var(--crust);border-style:dashed}
 .badge{white-space:nowrap;font-size:12px;background:var(--crust);color:#fff;border-radius:999px;padding:3px 10px;font-weight:600}
-details summary{cursor:pointer;font-weight:600;list-style:none}
-details summary::-webkit-details-marker{display:none}
-details summary::after{content:" ▾";color:var(--muted)}
-details[open] summary::after{content:" ▴"}
-.share{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.catgroup{border-top:1px solid var(--line);padding:12px 0 4px}
-.catgroup:first-of-type{border-top:0}
-.catgroup summary{padding:2px 0 6px}
-.catgroup ul.list li{align-items:flex-start}
-.catgroup .btn{flex:0 0 auto}
-.actions{display:flex;flex-wrap:wrap;gap:8px}
-.btns{display:flex;gap:6px;flex:0 0 auto}
-.st{font-size:13px;flex:0 1 auto;max-width:45%;text-align:right;padding-top:2px}
-.st.ok{color:var(--basil);font-weight:600}
-li.covered .t{color:var(--muted)}
-.need-tag{background:var(--cheese-soft);color:var(--crust);font-size:11px;vertical-align:middle;margin-left:4px}
 footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0}
 footer a{color:inherit}
 @media (max-width:420px){.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
@@ -120,12 +147,76 @@ footer a{color:inherit}
 
   <footer>Gastgeber? <a href="#" id="hostLink">Hier entlang</a></footer>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 const SB_URL = "https://obxwqvmmirmbfktjvhxf.supabase.co";
 const SB_KEY = "sb_publishable_z8qJ_vabWK3oWcczXR2YpQ_XVu7kO5s";
 const CATS = ["Teig & Mehl","Sauce","Käse","Belag","Gemüse & Kräuter","Getränke","Dessert","Sonstiges"];
+const CAT_ICON = {"Teig & Mehl":"🌾","Sauce":"🥫","Käse":"🧀","Belag":"🥓","Gemüse & Kräuter":"🥬","Getränke":"🥤","Dessert":"🍰","Sonstiges":"🧺"};
+
+// ---------- Zutatenliste ----------
+// n Name · i Symbol · c Kategorie · k Suchbegriffe · x Ausschlüsse · t kurzer Tipp · b Basis · multi: jeder darf mitbringen
+const CATALOG = [
+  { id:"basis", name:"Teig & Sauce", icon:"🫓", items:[
+    { n:"Pizzateig", i:"🫓", c:"Teig & Mehl", k:["teig"], t:"ca. 250 g pro Pizza", b:1 },
+    { n:"Tomatensauce", i:"🍅", c:"Sauce", k:["tomatensauce","tomatensoße","tomatensosse","passata","pelati","san marzano"], t:"dick, nicht wässrig", b:1 },
+    { n:"Hartweizengrieß", i:"🌾", c:"Teig & Mehl", k:["grieß","griess","semola"], t:"zum Ausrollen, damit nichts klebt", b:1 },
+    { n:"Olivenöl", i:"🫗", c:"Sonstiges", k:["olivenöl","olivenoel"], b:1 }
+  ]},
+  { id:"kaese", name:"Käse", icon:"🧀", items:[
+    { n:"Mozzarella", i:"🧀", c:"Käse", k:["mozzarella","pizzakäse"], x:["burrata"], t:"💧 Pizza-Mozzarella am Stück ist trockener als Kugeln aus der Lake", b:1 },
+    { n:"Parmesan", i:"🧀", c:"Käse", k:["parmesan","grana","pecorino"], t:"nach dem Backen drüberhobeln", b:1 },
+    { n:"Burrata", i:"🤍", c:"Käse", k:["burrata"], t:"erst nach dem Backen drauf" },
+    { n:"Gorgonzola", i:"💙", c:"Käse", k:["gorgonzola"] },
+    { n:"Scamorza (Räucherkäse)", i:"🟤", c:"Käse", k:["scamorza"], t:"trocken, schmilzt super" },
+    { n:"Ziegenkäse", i:"🐐", c:"Käse", k:["ziegenkäse"] },
+    { n:"Fior di Latte (Kuhmilch-Mozzarella)", i:"🥛", c:"Käse", k:["fior di latte"], t:"💧 vorher gut abtropfen" }
+  ]},
+  { id:"fleisch", name:"Fleisch & Fisch", icon:"🥓", items:[
+    { n:"Salami", i:"🍕", c:"Belag", k:["salami","spianata"] },
+    { n:"Kochschinken", i:"🍖", c:"Belag", k:["kochschinken","prosciutto cotto"] },
+    { n:"Rohschinken (Prosciutto)", i:"🥩", c:"Belag", k:["rohschinken","parmaschinken","serrano","prosciutto"], x:["cotto"], t:"erst nach dem Backen drauf" },
+    { n:"’Nduja (scharfe Streichsalami)", i:"🔥", c:"Belag", k:["nduja"], t:"kleine Kleckse reichen" },
+    { n:"Thunfisch", i:"🐟", c:"Belag", k:["thunfisch"], t:"💧 gut abtropfen" },
+    { n:"Garnelen", i:"🦐", c:"Belag", k:["garnele","shrimp","scampi"], t:"💧 trocken tupfen" },
+    { n:"Sardellen", i:"🐠", c:"Belag", k:["sardelle"] }
+  ]},
+  { id:"gemuese", name:"Gemüse", icon:"🥬", items:[
+    { n:"Champignons", i:"🍄", c:"Gemüse & Kräuter", k:["champignon","pilze"], t:"💧 hauchdünn schneiden" },
+    { n:"Zwiebeln", i:"🧅", c:"Gemüse & Kräuter", k:["zwiebel"] },
+    { n:"Paprika", i:"🫑", c:"Gemüse & Kräuter", k:["paprika"] },
+    { n:"Kirschtomaten", i:"🍅", c:"Gemüse & Kräuter", k:["kirschtomate","cherrytomate","cocktailtomate"], t:"💧 halbieren, Kerne raus" },
+    { n:"Rucola", i:"🥗", c:"Gemüse & Kräuter", k:["rucola","rauke"], t:"erst nach dem Backen drauf" },
+    { n:"Oliven", i:"🫒", c:"Gemüse & Kräuter", k:["olive"], x:["olivenöl","olivenoel"] },
+    { n:"Peperoni / Jalapeños", i:"🌶️", c:"Gemüse & Kräuter", k:["peperoni","jalape"] },
+    { n:"Spinat", i:"🍃", c:"Gemüse & Kräuter", k:["spinat"], t:"💧 gut ausdrücken" },
+    { n:"Zucchini", i:"🥒", c:"Gemüse & Kräuter", k:["zucchini"], t:"💧 dünn hobeln" },
+    { n:"Artischocken", i:"🌱", c:"Gemüse & Kräuter", k:["artischocke"], t:"💧 abtropfen" },
+    { n:"Mais", i:"🌽", c:"Gemüse & Kräuter", k:["mais"], t:"💧 abtropfen" },
+    { n:"Knoblauch", i:"🧄", c:"Gemüse & Kräuter", k:["knoblauch"] }
+  ]},
+  { id:"extras", name:"Kräuter & Extras", icon:"🌿", items:[
+    { n:"Frisches Basilikum", i:"🌿", c:"Gemüse & Kräuter", k:["basilikum"], t:"erst nach dem Backen drauf", b:1 },
+    { n:"Oregano", i:"🍂", c:"Gemüse & Kräuter", k:["oregano"] },
+    { n:"Chiliöl / Chiliflocken", i:"🌶️", c:"Sonstiges", k:["chili"] },
+    { n:"Honig", i:"🍯", c:"Sonstiges", k:["honig"], t:"top zu Salami oder Gorgonzola" },
+    { n:"Kapern", i:"🟢", c:"Gemüse & Kräuter", k:["kapern"] },
+    { n:"Pesto", i:"🥣", c:"Sauce", k:["pesto"] }
+  ]},
+  { id:"getraenke", name:"Getränke", icon:"🥤", multi:1, note:"Bitte jeder ein bisschen was – dann muss niemand alles in den 4. Stock schleppen.", items:[
+    { n:"Bier", i:"🍺", c:"Getränke", k:["bier"], multi:1 },
+    { n:"Wein", i:"🍷", c:"Getränke", k:["wein"], multi:1 },
+    { n:"Softdrinks", i:"🥤", c:"Getränke", k:["softdrink","limo","cola","spezi","saft"], multi:1 },
+    { n:"Wasser", i:"💧", c:"Getränke", k:["wasser"], multi:1 }
+  ]},
+  { id:"dessert", name:"Nachtisch", icon:"🍰", items:[
+    { n:"Nutella (Dessert-Pizza)", i:"🍫", c:"Dessert", k:["nutella"] },
+    { n:"Nachtisch (z. B. Tiramisu)", i:"🍰", c:"Dessert", k:["tiramisu","dessert","nachtisch"] }
+  ]}
+];
+const CAT_FLAT = CATALOG.flatMap(g => g.items);
+const BASICS = CAT_FLAT.filter(e => e.b);
 
 // ---------- Speicher im Browser (nur Komfort) ----------
 const ls = {
@@ -135,6 +226,7 @@ const ls = {
 let myName = ls.get("pz_name", "");
 let tokens = ls.get("pz_tokens", {});
 let adminKey = ls.get("pz_admin", "");
+let openState = ls.get("pz_open", {});
 function saveToken(id, tok){ tokens[id] = tok; ls.set("pz_tokens", tokens); }
 function dropToken(id){ delete tokens[id]; ls.set("pz_tokens", tokens); }
 
@@ -152,17 +244,19 @@ async function api(path, opts={}){
 const rpc = (fn, args) => api("rpc/" + fn, { method:"POST", body: JSON.stringify(args) });
 
 // ---------- Zustand ----------
-let events = [], signups = [], items = [], selected = null, isAdmin = false, editing = false;
+let events = [], signups = [], items = [], selected = null, isAdmin = false, editing = false, lastSig = "";
 const today = new Date(); today.setHours(0,0,0,0);
 const isPast = e => new Date(e.event_date + "T00:00") < today;
 
-async function load(){
+async function load(force){
   const [ev, su, it] = await Promise.all([
     api("pz_events?select=id,event_date,event_time,title,max_guests,notes,closed&order=event_date.asc"),
     api("pz_signups?select=id,event_id,name,created_at&order=created_at.asc"),
     api("pz_items?select=id,event_id,name,category,qty,kind,person,created_at&order=created_at.asc")
   ]);
-  events = ev; signups = su; items = it;
+  const sig = JSON.stringify([ev, su, it]);
+  if(!force && sig === lastSig) return;          // nichts geändert → nichts neu zeichnen (kein Springen)
+  lastSig = sig; events = ev; signups = su; items = it;
   const visible = visibleEvents();
   const wanted = new URLSearchParams(location.search).get("e");
   if(!selected || !events.find(e => e.id === selected)){
@@ -186,16 +280,18 @@ const fmtDate = (d, opt) => new Date(d + "T00:00").toLocaleDateString("de-DE", o
 function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2600); }
 function needName(){
   const v = (document.getElementById("nameInput")?.value || myName || "").trim();
-  if(!v){ toast("Bitte oben zuerst deinen Namen eintragen"); document.getElementById("nameInput")?.focus(); return null; }
+  if(!v){ toast("Bitte oben zuerst deinen Namen eintragen"); const n = document.getElementById("nameInput"); if(n){ n.focus({preventScroll:false}); } return null; }
   myName = v; ls.set("pz_name", v); return v;
 }
 async function act(fn, okMsg){
-  try{ await fn(); if(okMsg) toast(okMsg); await load(); }
+  try{ await fn(); if(okMsg) toast(okMsg); await load(true); }
   catch(e){ toast(e.message); }
 }
+function isOpen(key, def){ return key in openState ? openState[key] : def; }
 
 // ---------- Darstellung ----------
 function render(){
+  const y = window.scrollY;
   renderAdminBox();
   const vis = visibleEvents();
   document.getElementById("chips").innerHTML = vis.length > 1 ? vis.map(e =>
@@ -205,131 +301,46 @@ function render(){
   const ev = events.find(e => e.id === selected);
   const main = document.getElementById("main");
   if(!ev){
-    main.innerHTML = `<div class="card"><h2>Gerade kein Termin geplant</h2><p class="muted">Sobald der nächste Pizzaabend steht, taucht er hier auf. Einfach den Link behalten.</p></div>` + vorratCard(null);
-    return;
+    main.innerHTML = `<div class="card"><h2>Gerade kein Termin geplant</h2><p class="muted" style="margin:6px 0 0">Sobald der nächste Pizzaabend steht, taucht er hier auf. Einfach den Link behalten.</p></div>`
+      + (isAdmin ? zutatenCard(null, false) : "");
+  } else {
+    main.innerHTML = eventCard(ev) + zutatenCard(ev, !ev.closed && !isPast(ev));
   }
+  window.scrollTo(0, y);
+}
+
+function eventCard(ev){
   const guests = signups.filter(s => s.event_id === ev.id);
   const confirmed = guests.slice(0, ev.max_guests), waiting = guests.slice(ev.max_guests);
   const free = Math.max(0, ev.max_guests - guests.length);
   const open = !ev.closed && !isPast(ev);
   const mine = guests.find(g => tokens[g.id]);
+  const myPos = mine ? guests.indexOf(mine) : -1;
 
-  let html = `<div class="card">
-    ${isPast(ev) ? '<span class="tag">vergangen</span>' : ev.closed ? '<span class="tag">Anmeldung geschlossen</span>' : ''}
-    <div class="when-row"><p class="when">${esc(fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'}))}</p>${isAdmin ? `<button class="btn ghost small" data-edit-ev="${ev.id}">✎ Bearbeiten</button>` : ""}</div>
-    <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}</p>
+  const pill = (g, wait) => `<span class="pill ${tokens[g.id]?'me':''} ${wait?'wait':''}">${esc(g.name)}${tokens[g.id]?' (du)':''}${isAdmin ? `<button class="x" aria-label="${esc(g.name)} entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</span>`;
+
+  return `<div class="card">
+    ${isPast(ev) ? '<span class="pill" style="margin-bottom:8px">vergangen</span>' : ev.closed ? '<span class="pill" style="margin-bottom:8px">Anmeldung geschlossen</span>' : ''}
+    <div class="when-row">
+      <div><p class="when">${esc(fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'}))}</p>
+      <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}</p></div>
+      ${isAdmin ? `<button class="btn ghost small" data-edit-ev="${ev.id}">✎ Bearbeiten</button>` : ""}
+    </div>
     <div class="seats"><div class="dots">${Array.from({length:ev.max_guests},(_,i)=>`<span class="dot ${i<confirmed.length?'full':''}"></span>`).join("")}</div>
-      <span class="seats-txt">${free ? `${free} von ${ev.max_guests} Plätzen frei` : `Voll${waiting.length ? ` · ${waiting.length} auf Warteliste` : ' – Warteliste offen'}`}</span></div>
+      <span class="seats-txt">${free ? `${free} von ${ev.max_guests} Plätzen frei` : `Voll${waiting.length ? ` · ${waiting.length} auf Warteliste` : ' · Warteliste offen'}`}</span></div>
     ${ev.notes ? `<p class="notes">${esc(ev.notes)}</p>` : ""}
-    <div class="mt">
-      <label for="nameInput">Dein Name</label>
-      <div class="row">
-        <input id="nameInput" placeholder="z. B. Anna" value="${esc(myName)}" autocomplete="given-name" maxlength="40">
-        ${open && !mine ? `<button class="btn shrink" id="joinBtn">${free ? "Ich bin dabei" : "Auf Warteliste"}</button>` : ""}
-      </div>
-      ${mine ? `<p class="muted mt">Du bist angemeldet${guests.indexOf(mine) >= ev.max_guests ? ` – Warteliste Platz ${guests.indexOf(mine)-ev.max_guests+1}` : ""} 🎉</p>` : ""}
-    </div>
-    <h3>Dabei (${confirmed.length}/${ev.max_guests})</h3>
-    ${confirmed.length ? `<ul class="list">${confirmed.map((g,i)=>guestLi(g,i+1,open)).join("")}</ul>` : `<p class="empty">Noch niemand – sei die/der Erste!</p>`}
-    ${waiting.length ? `<h3>Warteliste</h3><ul class="list wait">${waiting.map((g,i)=>guestLi(g,i+1,open)).join("")}</ul><p class="muted">Sagt jemand ab, rückt die Warteliste automatisch nach.</p>` : ""}
-    <div class="share">
-      <button class="btn ghost small" id="waBtn">In WhatsApp teilen</button>
-      <button class="btn ghost small" id="copyBtn">Link kopieren</button>
-    </div>
+    ${mine
+      ? `<div class="mebox"><span>${myPos < ev.max_guests ? `✓ Du bist dabei, ${esc(mine.name)}` : `Warteliste Platz ${myPos - ev.max_guests + 1}, ${esc(mine.name)}`}</span>${open ? `<button class="linkbtn" data-leave="${mine.id}">Absagen</button>` : ""}</div>`
+      : open ? `<div class="row mt">
+          <div><label for="nameInput">Dein Name</label><input id="nameInput" placeholder="z. B. Anna" value="${esc(myName)}" autocomplete="given-name" maxlength="40"></div>
+          <button class="btn shrink" id="joinBtn">${free ? "Ich bin dabei" : "Auf Warteliste"}</button>
+        </div>` : ""}
+    ${confirmed.length || waiting.length ? `<div class="pills">${confirmed.map(g => pill(g,false)).join("")}${waiting.length ? `<span class="wait-label">Warteliste:</span>${waiting.map(g => pill(g,true)).join("")}` : ""}</div>` : `<p class="hint">Noch niemand angemeldet.</p>`}
+    ${isAdmin ? `<div class="actions mt"><button class="btn ghost small" id="waBtn">In WhatsApp teilen</button><button class="btn ghost small" id="copyBtn">Link kopieren</button></div>` : ""}
   </div>`;
-
-  // Zutaten
-  const evItems = items.filter(i => i.event_id === ev.id);
-  const need = evItems.filter(i => i.kind === "bedarf");
-  const have = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...evItems.filter(i => i.kind === "vorrat")];
-  const bring = evItems.filter(i => i.kind === "mitbringsel");
-
-  html += `<div class="card"><h2>Zutaten</h2>
-    <p class="notes"><strong>Faustregel: Je trockener der Belag, desto besser die Pizza.</strong> Im heißen Ofen verdampft Wasser nicht schnell genug, der Boden wird matschig. Also lieber Pizza-Mozzarella am Stück als Kugeln aus der Lake (die gut abtropfen lassen), Dosenware abtropfen, Gemüse dünn schneiden. Frisches wie Rucola, Burrata oder Rohschinken erst nach dem Backen drauf.</p>
-    <h3>Wird noch gebraucht</h3>
-    ${need.length ? `<ul class="list need">${need.map(i => needLi(i, open)).join("")}</ul>` : `<p class="empty">Nichts Bestimmtes – bring gern mit, worauf du Lust hast.</p>`}
-    <h3>Ist schon da</h3>
-    ${have.length ? `<ul class="list have">${have.map(i => haveLi(i)).join("")}</ul>` : `<p class="empty">Noch nichts eingetragen.</p>`}
-    <h3>Bringen Gäste mit</h3>
-    ${bring.length ? groupByCat(bring).map(([cat, list]) => `<p class="muted" style="margin:10px 0 2px;font-weight:600">${esc(cat)}</p><ul class="list">${list.map(i => bringLi(i, open)).join("")}</ul>`).join("") : `<p class="empty">Noch nichts – trag ein, was du mitbringst.</p>`}
-    ${catalogBlock(ev, open, [...have, ...need, ...bring])}
-    ${open ? `<div class="mt" style="border-top:1px solid var(--line);padding-top:14px">
-      <label>Etwas anderes mitbringen</label>
-      <div class="row"><input id="itName" placeholder="z. B. Salami, Rucola, Bier" maxlength="60"></div>
-      <div class="grid2 mt">
-        <div><label for="itQty">Menge (optional)</label><input id="itQty" placeholder="z. B. 200 g, 6 Fl." maxlength="30"></div>
-        <div><label for="itCat">Kategorie</label><select id="itCat">${CATS.map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
-      </div>
-      <button class="btn green wide mt" id="addItemBtn">Eintragen</button>
-    </div>` : ""}
-  </div>`;
-
-  if(isAdmin) html += adminEventCard(ev) + vorratCard(ev);
-  main.innerHTML = html;
 }
 
-// ---------- Vorschlagsliste ----------
-// k = Suchbegriffe, um vorhandene Einträge zu erkennen; x = Begriffe, die NICHT zählen
-const CATALOG = [
-  { group: "Basis – sollte immer da sein", open: true, items: [
-    { n: "Pizzateig", c: "Teig & Mehl", k: ["teig"], t: "Ca. 250 g pro Pizza" },
-    { n: "Tomatensauce", c: "Sauce", k: ["tomatensauce","tomatensoße","tomatensosse","passata","pelati","san marzano"], t: "Lieber dick als wässrig – San-Marzano-Tomaten oder dicke Passata" },
-    { n: "Mozzarella", c: "Käse", k: ["mozzarella","pizzakäse"], x: ["burrata"], t: "Pizza-Mozzarella am Stück oder gerieben ist ideal. Kugeln aus der Lake gut abtropfen, am besten schon am Vortag" },
-    { n: "Hartweizengrieß", c: "Teig & Mehl", k: ["grieß","griess","semola"], t: "Zum Ausrollen und für die Schaufel, damit nichts klebt" },
-    { n: "Olivenöl", c: "Sonstiges", k: ["olivenöl","olivenoel"] },
-    { n: "Frisches Basilikum", c: "Gemüse & Kräuter", k: ["basilikum"], t: "Erst nach dem Backen drauf" },
-    { n: "Parmesan", c: "Käse", k: ["parmesan","grana","pecorino"], t: "Nach dem Backen drüberhobeln" }
-  ]},
-  { group: "Käse", items: [
-    { n: "Fior di Latte", c: "Käse", k: ["fior di latte"], t: "Sehr feucht: zupfen und 1–2 Stunden abtropfen lassen" },
-    { n: "Burrata", c: "Käse", k: ["burrata"], t: "Erst nach dem Backen drauf" },
-    { n: "Scamorza (geräuchert)", c: "Käse", k: ["scamorza"], t: "Trocken und rauchig, schmilzt super" },
-    { n: "Gorgonzola", c: "Käse", k: ["gorgonzola"] },
-    { n: "Ziegenkäse", c: "Käse", k: ["ziegenkäse"] }
-  ]},
-  { group: "Fleisch & Fisch", items: [
-    { n: "Salami", c: "Belag", k: ["salami","spianata","pepperoni-salami"], t: "Scharfe Spianata ist der Klassiker" },
-    { n: "Rohschinken (Prosciutto)", c: "Belag", k: ["prosciutto crudo","rohschinken","parmaschinken","serrano","prosciutto"], x: ["cotto"], t: "Erst nach dem Backen drauf" },
-    { n: "Kochschinken", c: "Belag", k: ["kochschinken","prosciutto cotto"] },
-    { n: "’Nduja", c: "Belag", k: ["nduja"], t: "Scharfe Streichsalami, kleine Kleckse reichen" },
-    { n: "Thunfisch", c: "Belag", k: ["thunfisch"], t: "Sehr gut abtropfen lassen" },
-    { n: "Sardellen", c: "Belag", k: ["sardelle"] },
-    { n: "Garnelen", c: "Belag", k: ["garnele","shrimp","scampi"], t: "Trocken tupfen, sie geben sonst Wasser ab" }
-  ]},
-  { group: "Gemüse", items: [
-    { n: "Champignons", c: "Gemüse & Kräuter", k: ["champignon","pilze"], t: "Hauchdünn schneiden, sie geben viel Wasser ab" },
-    { n: "Zwiebeln", c: "Gemüse & Kräuter", k: ["zwiebel"] },
-    { n: "Paprika", c: "Gemüse & Kräuter", k: ["paprika"] },
-    { n: "Kirschtomaten", c: "Gemüse & Kräuter", k: ["kirschtomate","cherrytomate","cocktailtomate"], t: "Halbieren und die Kerne raus" },
-    { n: "Oliven", c: "Gemüse & Kräuter", k: ["olive"], x: ["olivenöl","olivenoel"] },
-    { n: "Rucola", c: "Gemüse & Kräuter", k: ["rucola","rauke"], t: "Erst nach dem Backen drauf" },
-    { n: "Spinat", c: "Gemüse & Kräuter", k: ["spinat"], t: "Gut ausdrücken" },
-    { n: "Artischocken", c: "Gemüse & Kräuter", k: ["artischocke"], t: "Gut abtropfen lassen" },
-    { n: "Zucchini", c: "Gemüse & Kräuter", k: ["zucchini"], t: "Dünn hobeln" },
-    { n: "Peperoni / Jalapeños", c: "Gemüse & Kräuter", k: ["peperoni","jalape"] },
-    { n: "Mais", c: "Gemüse & Kräuter", k: ["mais"], t: "Abtropfen lassen" },
-    { n: "Kapern", c: "Gemüse & Kräuter", k: ["kapern"] },
-    { n: "Knoblauch", c: "Gemüse & Kräuter", k: ["knoblauch"] }
-  ]},
-  { group: "Extras zum Verfeinern", items: [
-    { n: "Oregano", c: "Gemüse & Kräuter", k: ["oregano"] },
-    { n: "Chiliöl / Chiliflocken", c: "Sonstiges", k: ["chili"] },
-    { n: "Honig", c: "Sonstiges", k: ["honig"], t: "Passt super zu Salami oder Gorgonzola" },
-    { n: "Pesto", c: "Sauce", k: ["pesto"] }
-  ]},
-  { group: "Getränke", items: [
-    { n: "Bier", c: "Getränke", k: ["bier"] },
-    { n: "Wein", c: "Getränke", k: ["wein"] },
-    { n: "Softdrinks", c: "Getränke", k: ["softdrink","limo","cola","spezi","saft"] },
-    { n: "Wasser", c: "Getränke", k: ["wasser"] }
-  ]},
-  { group: "Nachtisch", items: [
-    { n: "Nutella", c: "Dessert", k: ["nutella"], t: "Für eine Dessert-Pizza" },
-    { n: "Nachtisch (z. B. Tiramisu)", c: "Dessert", k: ["tiramisu","dessert","nachtisch"] }
-  ]}
-];
-const CAT_FLAT = CATALOG.flatMap(g => g.items);
-
+// Welche Einträge passen zu einem Listeneintrag?
 function catMatch(entry, pool){
   return pool.filter(i => {
     const n = i.name.toLowerCase();
@@ -337,69 +348,106 @@ function catMatch(entry, pool){
     return entry.k.some(k => n.includes(k));
   });
 }
-function catStatus(entry, pool){
+function entryState(entry, pool){
   const hits = catMatch(entry, pool);
-  const have = hits.find(i => i.kind === "vorrat");
-  if(have) return { kind: "have", label: "ist da" + (have.qty ? ` · ${have.qty}` : "") };
+  const have = hits.filter(i => i.kind === "vorrat");
   const bring = hits.filter(i => i.kind === "mitbringsel" || (i.kind === "bedarf" && i.person));
-  if(bring.length) return { kind: "bring", label: "bringt " + bring.map(i => i.person).join(", ") };
-  const need = hits.find(i => i.kind === "bedarf");
-  if(need) return { kind: "need", item: need };
-  return { kind: "free" };
+  const need = hits.find(i => i.kind === "bedarf" && !i.person);
+  const mine = bring.find(i => tokens[i.id]);
+  return { hits, have, bring, need, mine, covered: have.length > 0 || bring.length > 0 };
 }
-function catalogBlock(ev, open, pool){
-  if(!open && !isAdmin) return "";
-  const groups = CATALOG.map(g => {
-    const rows = g.items.map(entry => {
-      const idx = CAT_FLAT.indexOf(entry);
-      const st = catStatus(entry, pool);
-      let right = "";
-      if(st.kind === "have") right = `<span class="st ok">✓ ${esc(st.label)}</span>`;
-      else if(st.kind === "bring") right = `<span class="st ok">${esc(st.label)}</span>`;
-      else if(isAdmin) right = `<span class="btns"><button class="btn ghost small" data-cat-have="${idx}">Ist da</button>${open ? `<button class="btn ghost small" data-cat-need="${idx}">Gebraucht</button>` : ""}</span>`;
-      else if(open) right = st.kind === "need"
-        ? `<button class="btn small" data-claim="${st.item.id}">Bringe ich</button>`
-        : `<button class="btn ghost small" data-cat-bring="${idx}">Bringe ich</button>`;
-      const flag = st.kind === "need" ? ' <span class="tag need-tag">wird gebraucht</span>' : "";
-      return `<li class="${st.kind === "have" || st.kind === "bring" ? "covered" : ""}"><div class="li-main"><div class="t">${esc(entry.n)}${flag}</div>${entry.t ? `<div class="s">${esc(entry.t)}</div>` : ""}</div>${right}</li>`;
-    }).join("");
-    const done = g.items.filter(e => ["have","bring"].includes(catStatus(e, pool).kind)).length;
-    return `<details class="catgroup" ${g.open ? "open" : ""}><summary>${esc(g.group)} <span class="muted" style="font-weight:400">· ${done}/${g.items.length} abgedeckt</span></summary><ul class="list">${rows}</ul></details>`;
-  }).join("");
-  return `<div class="mt" style="border-top:1px solid var(--line);padding-top:14px">
-    <h3 style="margin-top:0">Zum Antippen – was bringst du mit?</h3>
-    <p class="muted" style="margin:0 0 6px">${isAdmin ? "Als Gastgeber: markiere, was da ist oder was gebraucht wird." : "Einfach auf „Bringe ich“ tippen. Was schon da ist oder jemand bringt, ist abgehakt."}</p>
-    ${groups}
-  </div>`;
+const whoText = list => list.map(i => tokens[i.id] ? "du" : i.person).join(", ");
+
+function itemRow({ icon, name, tip, basis, st, multi, idx, ev, open, extra }){
+  let status = "";
+  if(st.have.length) status = `<span class="ok">✓ da${st.have[0].qty ? ` · ${esc(st.have[0].qty)}` : ""}</span>`;
+  let who = st.bring.length ? `<div class="who">${multi ? "🙋 " : "bringt "}${esc(whoText(st.bring))}</div>` : "";
+  let btns = "";
+  if(isAdmin){
+    if(st.have.length) btns += `<button class="x" aria-label="Aus dem Vorrat entfernen" data-adm-ids="${st.have.map(i=>i.id).join(",")}">×</button>`;
+    else if(st.need) btns += `<button class="x" aria-label="Nicht mehr gebraucht" data-adm-ids="${st.need.id}">×</button>`;
+    else if(idx != null){
+      btns += `<button class="btn ghost small" data-cat-have="${idx}">Ist da</button>`;
+      if(ev && open && !st.bring.length) btns += `<button class="btn ghost small" data-cat-need="${idx}">Fehlt</button>`;
+    }
+    if(extra && !st.have.length && !st.need) btns += `<button class="x" aria-label="Löschen" data-adm-ids="${extra.id}">×</button>`;
+  } else if(ev && open){
+    if(st.mine) btns += st.mine.kind === "bedarf"
+      ? `<button class="btn ghost small" data-unclaim="${st.mine.id}">Doch nicht</button>`
+      : `<button class="btn ghost small" data-rm="${st.mine.id}">Doch nicht</button>`;
+    else if(st.need) btns += `<button class="btn small" data-claim="${st.need.id}">Bringe ich</button>`;
+    else if(idx != null && !st.have.length && (!st.bring.length || multi)) btns += `<button class="btn ghost small" data-cat-bring="${idx}">${st.bring.length ? "Ich auch" : "Bringe ich"}</button>`;
+  }
+  const flags = (basis ? `<span class="basis">Basis</span>` : "") + (st.need ? `<span class="needed">fehlt</span>` : "");
+  return `<li class="${st.covered && !multi ? "done" : ""}"><span class="ico" aria-hidden="true">${icon}</span>
+    <div class="im"><div class="t">${esc(name)}${flags}</div>${who}${tip && !who ? `<div class="s">${esc(tip)}</div>` : ""}</div>
+    <div class="right">${status}${btns}</div></li>`;
 }
 
-function guestLi(g, n, open){
-  const own = !!tokens[g.id];
-  return `<li><span class="num">${n}</span><div class="li-main"><span class="t">${esc(g.name)}</span>${own?'<span class="me">du</span>':''}</div>
-    ${own && open ? `<button class="btn ghost small" data-leave="${g.id}">Absagen</button>` : ""}
-    ${isAdmin ? `<button class="x" title="Entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</li>`;
-}
-function needLi(i, open){
-  const own = !!tokens[i.id];
-  const sub = [i.qty, i.person ? `bringt ${i.person}` : "noch offen"].filter(Boolean).join(" · ");
-  return `<li class="${i.person?'taken':''}"><div class="li-main"><div class="t">${esc(i.name)}</div><div class="s">${esc(sub)}</div></div>
-    ${!i.person && open ? `<button class="btn small" data-claim="${i.id}">Bringe ich</button>` : ""}
-    ${own && i.person && open ? `<button class="btn ghost small" data-unclaim="${i.id}">Doch nicht</button>` : ""}
-    ${isAdmin ? `<button class="x" title="Löschen" data-adm="item" data-id="${i.id}">×</button>` : ""}</li>`;
-}
-function haveLi(i){
-  return `<li><div class="li-main"><div class="t">${esc(i.name)}</div>${i.qty?`<div class="s">${esc(i.qty)}</div>`:""}</div>
-    ${isAdmin ? `<button class="x" title="Löschen" data-adm="item" data-id="${i.id}">×</button>` : ""}</li>`;
-}
-function bringLi(i, open){
-  const own = !!tokens[i.id];
-  return `<li><div class="li-main"><div class="t">${esc(i.name)}${i.qty?` <span class="muted">· ${esc(i.qty)}</span>`:""}</div><div class="s">${esc(i.person)}${own?' <span class="me">du</span>':''}</div></div>
-    ${(own && open) || isAdmin ? `<button class="x" title="Löschen" ${isAdmin && !own ? `data-adm="item" data-id="${i.id}"` : `data-rm="${i.id}"`}>×</button>` : ""}</li>`;
-}
-function groupByCat(list){
-  const m = new Map(); CATS.forEach(c => m.set(c, []));
-  list.forEach(i => (m.get(i.category) || m.get("Sonstiges")).push(i));
-  return [...m].filter(([,l]) => l.length);
+function zutatenCard(ev, open){
+  const pool = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...(ev ? items.filter(i => i.event_id === ev.id) : [])];
+
+  // Basis-Übersicht
+  const basicsHtml = BASICS.map(e => {
+    const st = entryState(e, pool);
+    return `<span class="bp ${st.covered ? "" : "miss"}">${st.covered ? "✓" : "○"} ${esc(e.n.replace("Frisches ",""))}</span>`;
+  }).join("");
+
+  let totalMissing = 0, totalNeeded = 0;
+  const groupsHtml = CATALOG.map(g => {
+    const rows = g.items.map(e => ({ e, idx: CAT_FLAT.indexOf(e), st: entryState(e, pool) }));
+    const missing = rows.filter(r => !r.st.covered || (g.multi && !r.st.mine && !isAdmin));
+    const covered = rows.filter(r => r.st.covered);
+    // Was fehlt: zuerst „wird gebraucht“, dann Basis, dann Rest
+    const missRows = rows.filter(r => !r.st.covered).sort((a,b) => (!!b.st.need - !!a.st.need) || ((b.e.b||0) - (a.e.b||0)));
+    const needed = rows.filter(r => r.st.need).length;
+    totalNeeded += needed; totalMissing += rows.filter(r => !r.st.covered && r.e.b).length;
+    const row = r => itemRow({ icon:r.e.i, name:r.e.n, tip:r.e.t, basis:r.e.b, st:r.st, multi:g.multi, idx:r.idx, ev, open });
+    let body;
+    if(g.multi){
+      body = `<p class="muted" style="margin:0 0 6px 36px">${esc(g.note)}</p><ul class="items">${rows.map(row).join("")}</ul>`;
+    } else {
+      body = (missRows.length ? `<div class="sublabel">Fehlt noch</div><ul class="items">${missRows.map(row).join("")}</ul>` : "")
+           + (covered.length ? `<div class="sublabel">Ist abgedeckt</div><ul class="items">${covered.map(row).join("")}</ul>` : "");
+    }
+    const info = g.multi
+      ? (() => { const n = rows.reduce((s,r)=>s + r.st.bring.length, 0); return n ? `${n}× zugesagt` : `<b>noch nichts</b>`; })()
+      : `${covered.length}/${rows.length} da${needed ? ` · <b>${needed} fehlt</b>` : ""}`;
+    const def = g.id === "basis" || needed > 0;
+    return `<details class="grp" data-key="g-${g.id}" ${isOpen("g-"+g.id, def) ? "open" : ""}>
+      <summary><span class="gi" aria-hidden="true">${g.icon}</span><span class="gn">${esc(g.name)}</span><span class="gs">${info}</span></summary>
+      ${body}</details>`;
+  }).join("");
+
+  // Einträge, die zu keinem Listeneintrag passen
+  const known = new Set(CAT_FLAT.flatMap(e => catMatch(e, pool).map(i => i.id)));
+  const others = pool.filter(i => !known.has(i.id));
+  const otherHtml = others.length ? `<details class="grp" data-key="g-other" ${isOpen("g-other", true) ? "open" : ""}>
+      <summary><span class="gi" aria-hidden="true">🧺</span><span class="gn">Weitere Einträge</span><span class="gs">${others.length}</span></summary>
+      <ul class="items">${others.map(i => {
+        const st = { hits:[i], have: i.kind==="vorrat" ? [i] : [], bring: (i.kind==="mitbringsel" || (i.kind==="bedarf" && i.person)) ? [i] : [],
+                     need: i.kind==="bedarf" && !i.person ? i : null, mine: tokens[i.id] && i.kind !== "vorrat" ? i : null };
+        st.covered = st.have.length || st.bring.length;
+        return itemRow({ icon: CAT_ICON[i.category] || "🧺", name: i.name + (i.qty && i.kind !== "vorrat" ? ` · ${i.qty}` : ""), st, idx:null, ev, open, extra:i });
+      }).join("")}</ul></details>` : "";
+
+  const custom = (open || isAdmin) ? `<details class="custom" data-key="custom" ${isOpen("custom", false) ? "open" : ""}>
+      <summary>+ Etwas anderes eintragen</summary>
+      <div class="mt"><input id="itName" placeholder="z. B. Ananas, Feigen, Trüffelöl …" maxlength="60" aria-label="Zutat"></div>
+      <div class="grid2 mt"><input id="itQty" placeholder="Menge (optional)" maxlength="30" aria-label="Menge">
+        <select id="itCat" aria-label="Kategorie">${CATS.map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
+      <div class="actions mt">${isAdmin
+        ? `<button class="btn green small" data-addadm="vorrat">Ist da (Vorrat)</button>${ev && open ? `<button class="btn small" data-addadm="bedarf">Fehlt noch</button>` : ""}`
+        : `<button class="btn green small" id="addItemBtn">Bringe ich mit</button>`}</div>
+    </details>` : "";
+
+  return `<div class="card">
+    <div class="zhead"><h2>Zutaten</h2><span class="zsum">${totalNeeded ? `${totalNeeded} wird noch gebraucht` : "Tippe an, was du mitbringst"}</span></div>
+    <div class="basics" aria-label="Basis-Zutaten">${basicsHtml}</div>
+    <details class="tip" data-key="tip" ${isOpen("tip", false) ? "open" : ""}><summary>💧 Tipp: Je trockener der Belag, desto besser ▾</summary>
+      <p>Im heißen Ofen verdampft Wasser nicht schnell genug, der Boden wird matschig. Also lieber Pizza-Mozzarella am Stück als Kugeln aus der Lake (die gut abtropfen lassen), Dosenware abtropfen, Gemüse dünn schneiden. Frisches wie Rucola, Burrata oder Rohschinken erst nach dem Backen drauf.</p></details>
+    ${groupsHtml}${otherHtml}${custom}
+  </div>`;
 }
 
 // ---------- Gastgeber-Bereich ----------
@@ -413,43 +461,23 @@ function renderAdminBox(){
 }
 function eventForm(ev){
   const d = ev ? ev.event_date : new Date(Date.now()+14*864e5).toISOString().slice(0,10);
-  return `<div class="mt"><h2>${ev ? "Termin bearbeiten" : "Neuer Termin"}</h2>
-    <div class="grid2"><div><label>Datum</label><input type="date" id="fDate" value="${esc(d)}"></div>
-    <div><label>Uhrzeit</label><input type="time" id="fTime" value="${esc(ev?.event_time || "19:00")}"></div></div>
-    <div class="grid2 mt"><div><label>Titel</label><input id="fTitle" value="${esc(ev?.title || "Pizzaabend")}" maxlength="60"></div>
-    <div><label>Plätze</label><input type="number" id="fMax" min="1" max="40" value="${ev?.max_guests || 8}"></div></div>
-    <div class="mt"><label>Infos für alle (optional)</label><textarea id="fNotes" placeholder="z. B. Teig mache ich, bringt Belag mit!">${esc(ev?.notes || "")}</textarea></div>
+  return `<div class="mt"><h2 style="margin-bottom:10px">${ev ? "Termin bearbeiten" : "Neuer Termin"}</h2>
+    <div class="grid2"><div><label for="fDate">Datum</label><input type="date" id="fDate" value="${esc(d)}"></div>
+    <div><label for="fTime">Uhrzeit</label><input type="time" id="fTime" value="${esc(ev?.event_time || "19:00")}"></div></div>
+    <div class="grid2 mt"><div><label for="fTitle">Titel</label><input id="fTitle" value="${esc(ev?.title || "Pizzaabend")}" maxlength="60"></div>
+    <div><label for="fMax">Plätze</label><input type="number" id="fMax" min="1" max="40" value="${ev?.max_guests || 8}"></div></div>
+    <div class="mt"><label for="fNotes">Infos für alle (optional)</label><textarea id="fNotes" placeholder="z. B. Teig mache ich, bringt Belag mit!">${esc(ev?.notes || "")}</textarea></div>
     ${ev ? `<label class="mt" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="fClosed" style="width:auto" ${ev.closed?"checked":""}> Anmeldung schließen</label>` : ""}
     <div class="actions mt"><button class="btn" id="saveEvBtn" data-id="${ev?.id || ""}">Speichern</button>
     <button class="btn ghost" id="cancelEvBtn">Abbrechen</button>
     ${ev ? `<button class="btn ghost" style="color:var(--danger);margin-left:auto" id="delEvBtn" data-id="${ev.id}">Löschen</button>` : ""}</div></div>`;
 }
-function adminEventCard(ev){
-  return `<div class="card admin"><h2>Für diesen Termin</h2>
-    <p class="muted">„Wird gebraucht“ können Gäste mit einem Klick übernehmen. „Ist da“ zeigt, was sie nicht kaufen müssen.</p>
-    ${itemForm("ev")}
-    <button class="btn ghost small mt" data-edit-ev="${ev.id}">Termin bearbeiten / schließen</button>
-  </div>`;
-}
-function vorratCard(ev){
-  if(!isAdmin) return "";
-  const vorrat = items.filter(i => i.kind === "vorrat" && !i.event_id);
-  return `<div class="card admin"><h2>Mein Vorrat</h2>
-    <p class="muted">Gilt für alle Termine – z. B. Mehl, Hefe, Öl. Löschen, wenn es aufgebraucht ist.</p>
-    ${vorrat.length ? `<ul class="list have">${vorrat.map(haveLi).join("")}</ul>` : `<p class="empty">Leer.</p>`}
-    ${itemForm("stock")}
-  </div>`;
-}
-function itemForm(scope){
-  return `<div class="mt">
-    <div class="row"><input id="${scope}Name" placeholder="Zutat" maxlength="60"></div>
-    <div class="grid2 mt"><input id="${scope}Qty" placeholder="Menge (optional)" maxlength="30">
-    <select id="${scope}Cat">${CATS.map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
-    <div class="row mt">
-      ${scope === "ev" ? `<button class="btn" data-addadm="bedarf">Wird gebraucht</button><button class="btn green" data-addadm="vorrat-ev">Ist da</button>`
-                       : `<button class="btn green" data-addadm="vorrat-all">Zum Vorrat</button>`}
-    </div></div>`;
-}
+
+// Auf-/Zuklappen merken (verhindert Springen beim Neuzeichnen)
+document.addEventListener("toggle", e => {
+  const d = e.target; if(!(d instanceof HTMLDetailsElement) || !d.dataset.key) return;
+  openState[d.dataset.key] = d.open; ls.set("pz_open", openState);
+}, true);
 
 // ---------- Klicks ----------
 document.addEventListener("click", async (e) => {
@@ -468,16 +496,12 @@ document.addEventListener("click", async (e) => {
     const name = document.getElementById("itName").value.trim(); if(!name) return toast("Was bringst du mit?");
     const dup = similar(name, ev); if(dup && !confirm(`Gibt es schon: ${dup}. Trotzdem eintragen?`)) return;
     return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:name,p_category:document.getElementById("itCat").value,p_qty:document.getElementById("itQty").value,p_person:n}); saveToken(r.id, r.token); }, "Eingetragen"); }
-  if(t.dataset.rm){ return act(async()=>{ await rpc("pz_remove_item",{p_id:t.dataset.rm,p_token:tokens[t.dataset.rm]}); dropToken(t.dataset.rm); }, "Gelöscht"); }
+  if(t.dataset.rm){ return act(async()=>{ await rpc("pz_remove_item",{p_id:t.dataset.rm,p_token:tokens[t.dataset.rm]}); dropToken(t.dataset.rm); }, "Wieder ausgetragen"); }
   if(t.dataset.claim){ const n = needName(); if(!n) return;
     return act(async()=>{ const r = await rpc("pz_claim",{p_id:t.dataset.claim,p_person:n}); saveToken(r.id, r.token); }, "Danke, ist notiert!"); }
+  if(t.dataset.unclaim){ return act(async()=>{ await rpc("pz_unclaim",{p_id:t.dataset.unclaim,p_token:tokens[t.dataset.unclaim]}); dropToken(t.dataset.unclaim); }, "Wieder freigegeben"); }
   if(t.dataset.catBring){ const n = needName(); if(!n) return; const c = CAT_FLAT[+t.dataset.catBring];
     return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:c.n,p_category:c.c,p_qty:"",p_person:n}); saveToken(r.id, r.token); }, `Danke! ${c.n} ist eingetragen`); }
-  if(t.dataset.catHave){ const c = CAT_FLAT[+t.dataset.catHave];
-    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:null,p_kind:"vorrat",p_name:c.n,p_category:c.c,p_qty:""}), `${c.n} steht im Vorrat`); }
-  if(t.dataset.catNeed){ const c = CAT_FLAT[+t.dataset.catNeed];
-    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:ev.id,p_kind:"bedarf",p_name:c.n,p_category:c.c,p_qty:""}), `${c.n} als gebraucht markiert`); }
-  if(t.dataset.unclaim){ return act(async()=>{ await rpc("pz_unclaim",{p_id:t.dataset.unclaim,p_token:tokens[t.dataset.unclaim]}); dropToken(t.dataset.unclaim); }, "Wieder freigegeben"); }
 
   if(t.id === "waBtn" || t.id === "copyBtn"){
     const url = location.origin + location.pathname + "?e=" + ev.id;
@@ -490,7 +514,7 @@ document.addEventListener("click", async (e) => {
   }
 
   // Gastgeber
-  if(t.id === "logoutBtn"){ isAdmin = false; adminKey = ""; ls.set("pz_admin",""); editing = false; return load(); }
+  if(t.id === "logoutBtn"){ isAdmin = false; adminKey = ""; ls.set("pz_admin",""); editing = false; return load(true); }
   if(t.id === "newEvBtn"){ editing = "new"; return render(); }
   if(t.dataset.editEv){ editing = t.dataset.editEv; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
   if(t.id === "cancelEvBtn"){ editing = false; return render(); }
@@ -504,12 +528,16 @@ document.addEventListener("click", async (e) => {
     }, "Termin gespeichert"); }
   if(t.id === "delEvBtn"){ if(!confirm("Termin mit allen Anmeldungen und Einträgen löschen?")) return;
     return act(async()=>{ await rpc("pz_admin_delete_event",{p_key:adminKey,p_id:t.dataset.id}); selected = null; editing = false; }, "Termin gelöscht"); }
+  if(t.dataset.catHave){ const c = CAT_FLAT[+t.dataset.catHave];
+    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:null,p_kind:"vorrat",p_name:c.n,p_category:c.c,p_qty:""}), `${c.n}: ist da`); }
+  if(t.dataset.catNeed){ const c = CAT_FLAT[+t.dataset.catNeed];
+    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:ev.id,p_kind:"bedarf",p_name:c.n,p_category:c.c,p_qty:""}), `${c.n}: fehlt noch`); }
   if(t.dataset.addadm){
-    const scope = t.dataset.addadm === "vorrat-all" ? "stock" : "ev";
-    const name = document.getElementById(scope+"Name").value.trim(); if(!name) return toast("Zutat fehlt");
-    const kind = t.dataset.addadm === "bedarf" ? "bedarf" : "vorrat";
-    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:scope==="stock"?null:ev.id,p_kind:kind,p_name:name,
-      p_category:document.getElementById(scope+"Cat").value,p_qty:document.getElementById(scope+"Qty").value}), "Hinzugefügt"); }
+    const name = document.getElementById("itName").value.trim(); if(!name) return toast("Zutat fehlt");
+    const kind = t.dataset.addadm;
+    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:kind==="vorrat"?null:ev.id,p_kind:kind,p_name:name,
+      p_category:document.getElementById("itCat").value,p_qty:document.getElementById("itQty").value}), "Hinzugefügt"); }
+  if(t.dataset.admIds){ return act(async()=>{ for(const id of t.dataset.admIds.split(",")) await rpc("pz_admin_remove",{p_key:adminKey,p_kind:"item",p_id:id}); }, "Entfernt"); }
   if(t.dataset.adm){ return act(()=>rpc("pz_admin_remove",{p_key:adminKey,p_kind:t.dataset.adm,p_id:t.dataset.id}), "Entfernt"); }
 });
 
@@ -522,21 +550,21 @@ function similar(name, ev){
 
 async function hostLogin(){
   const k = prompt("Gastgeber-Schlüssel:"); if(!k) return;
-  try{ if(await rpc("pz_admin_check",{p_key:k.trim()})){ adminKey = k.trim(); ls.set("pz_admin", adminKey); isAdmin = true; toast("Gastgeber-Modus an"); load(); }
+  try{ if(await rpc("pz_admin_check",{p_key:k.trim()})){ adminKey = k.trim(); ls.set("pz_admin", adminKey); isAdmin = true; toast("Gastgeber-Modus an"); load(true); }
        else toast("Schlüssel stimmt nicht"); }catch(e){ toast(e.message); }
 }
 
 // Name merken, während getippt wird
 document.addEventListener("input", e => { if(e.target.id === "nameInput"){ myName = e.target.value.trim(); ls.set("pz_name", myName); } });
 
-// Start + regelmäßig aktualisieren (nicht während jemand tippt)
+// Start + regelmäßig aktualisieren (nur wenn sich etwas geändert hat und niemand tippt)
 (async () => {
   if(adminKey){ try{ isAdmin = await rpc("pz_admin_check",{p_key:adminKey}); }catch(_){ } }
-  load().catch(e => { document.getElementById("main").innerHTML = `<div class="card"><p>Konnte nicht laden: ${esc(e.message)}</p></div>`; });
+  load(true).catch(e => { document.getElementById("main").innerHTML = `<div class="card"><p>Konnte nicht laden: ${esc(e.message)}</p></div>`; });
 })();
 const busy = () => { const a = document.activeElement; return a && /INPUT|SELECT|TEXTAREA/.test(a.tagName); };
 setInterval(() => { if(!document.hidden && !busy() && !editing) load().catch(()=>{}); }, 20000);
-document.addEventListener("visibilitychange", () => { if(!document.hidden && !busy()) load().catch(()=>{}); });
+document.addEventListener("visibilitychange", () => { if(!document.hidden && !busy() && !editing) load().catch(()=>{}); });
 </script>
 </body>
 </html>
