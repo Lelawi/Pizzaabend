@@ -699,6 +699,18 @@ document.addEventListener("click", async (e) => {
   if(t.id === "hostLink"){ e.preventDefault(); return hostLogin(); }
 
   if(t.id === "joinBtn"){ const n = needName(); if(!n) return;
+    // Name schon angemeldet? Dann fragen, ob man es selbst ist (z. B. neues Handy oder Browser hat einen vergessen)
+    const existing = signups.find(x => x.event_id === ev.id && x.name.trim().toLowerCase() === n.toLowerCase());
+    if(existing){
+      if(!confirm(`„${existing.name}“ ist schon angemeldet.\n\nBist du das? Dann übernimmt dieses Handy deine Anmeldung und deine Zutaten.`)){
+        return toast("Bitte einen anderen Namen wählen, z. B. mit Nachnamen-Initial");
+      }
+      return act(async()=>{
+        const r = await rpc("pz_reclaim",{p_event:ev.id,p_name:existing.name});
+        saveToken(r.signup.id, r.signup.token);
+        for(const i of r.items) saveToken(i.id, i.token);
+      }, `Willkommen zurück, ${existing.name}! 👋`);
+    }
     return act(async()=>{ const r = await rpc("pz_join2",{p_event:ev.id,p_name:n,p_plus:joinPlus,p_diet:joinDiet||null}); saveToken(r.id, r.token); joinPlus = 0; joinDiet = ""; }, "Du bist dabei 🍕 – tippe unten an, was du mitbringst"); }
   if(t.dataset.opt){
     const o = t.dataset.opt, who = t.dataset.who;
