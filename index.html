@@ -482,9 +482,9 @@ function catMatch(entry, pool){
 // ---------- Mengen: Bedarf nach Personenzahl ----------
 // per = Menge pro Person · def = angenommene Menge, wenn ein Gast nichts angibt · packs = übliche Packungsgrößen
 const METER = {
-  "Pizzateig":          { per: 1,   unit: "count", label: "Teiglinge", def: 4, gPer: 250, packs: { teigling: 1, ballen: 1, kugel: 1, "stück": 1, stk: 1, portion: 1 } },
-  "Tomatensauce":       { per: 80,  unit: "g", def: 400, packs: { dose: 400, glas: 500, "gläser": 500, flasche: 700, packung: 500, tetra: 500 } },
-  "Mozzarella":         { per: 100, unit: "g", def: 250, packs: { kugel: 125, rolle: 400, stange: 400, block: 400, packung: 250, beutel: 250 } }
+  "Pizzateig":          { per: 1,   unit: "count", label: "Teiglinge", def: 4, gPer: 250, slack: 1, packs: { teigling: 1, ballen: 1, kugel: 1, "stück": 1, stk: 1, portion: 1 } },
+  "Tomatensauce":       { per: 80,  unit: "g", def: 400, packName: ["Dose", "Dosen"], packG: 400, slack: 200, packs: { dose: 400, glas: 500, "gläser": 500, flasche: 700, packung: 500, tetra: 500 } },
+  "Mozzarella":         { per: 100, unit: "g", def: 250, packName: ["Stange", "Stangen"], packG: 400, slack: 200, packs: { kugel: 125, rolle: 400, stange: 400, block: 400, packung: 250, beutel: 250 } }
 };   // Basilikum bewusst ohne Menge: ein Topf reicht immer
 let PLAN = null;   // { people, final } für den gerade angezeigten Termin
 function daysUntil(ev){ return Math.round((new Date(ev.event_date + "T00:00") - today) / 864e5); }
@@ -513,13 +513,21 @@ function fmtAmt(v, m){
   const c = Math.max(1, Math.ceil(v - 0.01));
   return c + " " + (c === 1 ? m.label.replace(/e$/, "").replace("Töpfe", "Topf").replace("Teiglinge","Teigling") : m.label);
 }
+// „~1 kg ≈ 2–3 Stangen“: Bedarf zusätzlich in Packungen
+function packHint(v, m){
+  if(!m.packName) return "";
+  const x = v / m.packG, lo = Math.floor(x), hi = Math.ceil(x);
+  const n = lo === hi || x - lo < 0.2 ? Math.max(1, Math.round(x)) : `${Math.max(1, lo)}–${hi}`;
+  return ` ≈ ${n} ${n === 1 ? m.packName[0] : m.packName[1]}`;
+}
 function meterState(entry, have, bring){
   const m = METER[entry.n]; if(!m || !PLAN) return null;
   const need = PLAN.people * m.per;
   let got = 0, unknown = false;
   for(const i of have){ const v = parseQty(i.qty, m); if(v == null) unknown = true; else got += v; }
   for(const i of bring){ const v = parseQty(i.qty, m); got += v == null ? m.def : v; }
-  return { m, need, got, unknown, ok: unknown || got >= need * 0.95 };
+  // Pizzamengen sind Daumenwerte: eine Lücke unter einer Packung (bzw. einem Teigling) gilt als „reicht“
+  return { m, need, got, unknown, ok: unknown || got >= need - (m.slack || 0) + 0.01 || got >= need };
 }
 
 function entryState(entry, pool){
@@ -543,8 +551,8 @@ function itemRow({ icon, name, tip, basis, st, multi, idx, ev, open, extra }){
       : `<span class="short">${esc(fmtAmt(mt.got, mt.m))} / ${esc(fmtAmt(mt.need, mt.m))}</span>`;
   } else if(st.have.length) status = `<span class="ok">✓ da${st.have[0].qty ? ` · ${esc(st.have[0].qty)}` : ""}</span>`;
   if(mt) sub = mt.unknown
-    ? `Bedarf für ${PLAN.people} Pers.: ~${fmtAmt(mt.need, mt.m)} · ${isAdmin ? "Menge eintragen ✎" : "Menge noch offen"}`
-    : `Bedarf für ${PLAN.people} Pers.: ~${fmtAmt(mt.need, mt.m)}${!mt.ok && (st.have.length || st.bring.length) ? ` · fehlt ~${fmtAmt(mt.need - mt.got, mt.m)}` : ""}`;
+    ? `Bedarf für ${PLAN.people} Pers.: ~${fmtAmt(mt.need, mt.m)}${packHint(mt.need, mt.m)} · ${isAdmin ? "Menge eintragen ✎" : "Menge noch offen"}`
+    : `Bedarf für ${PLAN.people} Pers.: ~${fmtAmt(mt.need, mt.m)}${packHint(mt.need, mt.m)}${!mt.ok && (st.have.length || st.bring.length) ? ` · fehlt ~${fmtAmt(mt.need - mt.got, mt.m)}` : ""}`;
   let who = st.bring.length ? `<div class="who">🙋 ${esc(st.bring.map(i => (tokens[i.id] ? "du" : i.person) + (mt && i.qty ? ` (${i.qty})` : "")).join(", "))}</div>` : "";
   let btns = "";
   if(isAdmin){
