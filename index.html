@@ -123,8 +123,9 @@ li.done .t{color:var(--muted)}
 .right{display:flex;align-items:center;gap:6px;flex:0 0 auto}
 .ok{color:var(--basil);font-size:13px;font-weight:600;white-space:nowrap}
 .short{color:var(--tomato);font-size:13px;font-weight:600;white-space:nowrap}
-details.custom{border-top:1px solid var(--line);padding-top:12px}
-details.custom>summary{font-weight:600;color:var(--tomato)}
+.addrow{display:flex;gap:6px;align-items:center;margin:0 0 12px 36px}
+.addrow input{flex:1;min-width:0;padding:7px 10px;font-size:15px;border-radius:10px}
+.addrow .btn{flex:0 0 auto}
 
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);z-index:5}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -176,13 +177,13 @@ const CAT_ICON = {"Teig & Mehl":"🌾","Sauce":"🥫","Käse":"🧀","Belag":"�
 // ---------- Zutatenliste ----------
 // n Name · i Symbol · c Kategorie · k Suchbegriffe · x Ausschlüsse · t kurzer Tipp · b Basis · multi: jeder darf mitbringen
 const CATALOG = [
-  { id:"basis", name:"Teig & Sauce", icon:"🫓", items:[
+  { id:"basis", cats:["Teig & Mehl","Sauce"], ex:"z. B. Pizzasauce, Mehl", name:"Teig & Sauce", icon:"🫓", items:[
     { n:"Pizzateig", i:"🫓", c:"Teig & Mehl", k:["teig"], t:"ca. 250 g pro Pizza", b:1 },
     { n:"Tomatensauce", i:"🍅", c:"Sauce", k:["tomatensauce","tomatensoße","tomatensosse","passata","pelati","san marzano"], t:"dick, nicht wässrig", b:1 },
     { n:"Hartweizengrieß", i:"🌾", c:"Teig & Mehl", k:["grieß","griess","semola"], t:"zum Ausrollen, damit nichts klebt", b:1 },
     { n:"Olivenöl", i:"🫗", c:"Sonstiges", k:["olivenöl","olivenoel"], b:1 }
   ]},
-  { id:"kaese", name:"Käse", icon:"🧀", items:[
+  { id:"kaese", cats:["Käse"], ex:"z. B. Büffelmozzarella", name:"Käse", icon:"🧀", items:[
     { n:"Mozzarella", i:"🧀", c:"Käse", k:["mozzarella","pizzakäse"], x:["burrata"], t:"💧 Pizza-Mozzarella am Stück ist trockener als Kugeln aus der Lake", b:1 },
     { n:"Parmesan", i:"🧀", c:"Käse", k:["parmesan","grana","pecorino"], t:"nach dem Backen drüberhobeln", b:1 },
     { n:"Burrata", i:"🤍", c:"Käse", k:["burrata"], t:"erst nach dem Backen drauf" },
@@ -191,7 +192,7 @@ const CATALOG = [
     { n:"Ziegenkäse", i:"🐐", c:"Käse", k:["ziegenkäse"] },
     { n:"Fior di Latte (Kuhmilch-Mozzarella)", i:"🥛", c:"Käse", k:["fior di latte"], t:"💧 vorher gut abtropfen" }
   ]},
-  { id:"fleisch", name:"Fleisch & Fisch", icon:"🥓", items:[
+  { id:"fleisch", cats:["Belag"], ex:"z. B. Hähnchen, Speck", name:"Fleisch & Fisch", icon:"🥓", items:[
     { n:"Salami", i:"🍕", c:"Belag", k:["salami","spianata"] },
     { n:"Kochschinken", i:"🍖", c:"Belag", k:["kochschinken","prosciutto cotto"] },
     { n:"Rohschinken (Prosciutto)", i:"🥩", c:"Belag", k:["rohschinken","parmaschinken","serrano","prosciutto"], x:["cotto"], t:"erst nach dem Backen drauf" },
@@ -200,7 +201,7 @@ const CATALOG = [
     { n:"Garnelen", i:"🦐", c:"Belag", k:["garnele","shrimp","scampi"], t:"💧 trocken tupfen" },
     { n:"Sardellen", i:"🐠", c:"Belag", k:["sardelle"] }
   ]},
-  { id:"gemuese", name:"Gemüse", icon:"🥬", items:[
+  { id:"gemuese", cats:["Gemüse & Kräuter"], ex:"z. B. Ananas, Aubergine", name:"Gemüse", icon:"🥬", items:[
     { n:"Champignons", i:"🍄", c:"Gemüse & Kräuter", k:["champignon","pilze"], t:"💧 hauchdünn schneiden" },
     { n:"Zwiebeln", i:"🧅", c:"Gemüse & Kräuter", k:["zwiebel"] },
     { n:"Paprika", i:"🫑", c:"Gemüse & Kräuter", k:["paprika"] },
@@ -214,7 +215,7 @@ const CATALOG = [
     { n:"Mais", i:"🌽", c:"Gemüse & Kräuter", k:["mais"], t:"💧 abtropfen" },
     { n:"Knoblauch", i:"🧄", c:"Gemüse & Kräuter", k:["knoblauch"] }
   ]},
-  { id:"extras", name:"Kräuter & Extras", icon:"🌿", items:[
+  { id:"extras", cats:["Sonstiges"], ex:"z. B. Trüffelöl", name:"Kräuter & Extras", icon:"🌿", items:[
     { n:"Frisches Basilikum", i:"🌿", c:"Gemüse & Kräuter", k:["basilikum"], t:"erst nach dem Backen drauf", b:1 },
     { n:"Oregano", i:"🍂", c:"Gemüse & Kräuter", k:["oregano"] },
     { n:"Chiliöl / Chiliflocken", i:"🌶️", c:"Sonstiges", k:["chili"] },
@@ -222,13 +223,13 @@ const CATALOG = [
     { n:"Kapern", i:"🟢", c:"Gemüse & Kräuter", k:["kapern"] },
     { n:"Pesto", i:"🥣", c:"Sauce", k:["pesto"] }
   ]},
-  { id:"getraenke", name:"Getränke", icon:"🥤", multi:1, note:"Bitte jeder ein bisschen was – dann muss niemand alles in den 4. Stock schleppen.", items:[
+  { id:"getraenke", cats:["Getränke"], ex:"z. B. Aperol, Saft", name:"Getränke", icon:"🥤", multi:1, note:"Bitte jeder ein bisschen was – dann muss niemand alles in den 4. Stock schleppen.", items:[
     { n:"Bier", i:"🍺", c:"Getränke", k:["bier"], multi:1 },
     { n:"Wein", i:"🍷", c:"Getränke", k:["wein"], multi:1 },
     { n:"Softdrinks", i:"🥤", c:"Getränke", k:["softdrink","limo","cola","spezi","saft"], multi:1 },
     { n:"Wasser", i:"💧", c:"Getränke", k:["wasser"], multi:1 }
   ]},
-  { id:"dessert", name:"Nachtisch", icon:"🍰", items:[
+  { id:"dessert", cats:["Dessert"], ex:"z. B. Eis", name:"Nachtisch", icon:"🍰", items:[
     { n:"Nutella (Dessert-Pizza)", i:"🍫", c:"Dessert", k:["nutella"] },
     { n:"Nachtisch (z. B. Tiramisu)", i:"🍰", c:"Dessert", k:["tiramisu","dessert","nachtisch"] }
   ]}
@@ -558,6 +559,20 @@ function itemRow({ icon, name, tip, basis, st, multi, idx, ev, open, extra }){
     <div class="right">${status}${btns}</div></li>`;
 }
 
+function customState(i){
+  const st = { hits:[i], have: i.kind === "vorrat" ? [i] : [], bring: (i.kind === "mitbringsel" || (i.kind === "bedarf" && i.person)) ? [i] : [],
+               need: i.kind === "bedarf" && !i.person ? i : null, mine: tokens[i.id] && i.kind !== "vorrat" ? i : null, meter: null };
+  st.covered = st.have.length > 0 || st.bring.length > 0;
+  return st;
+}
+function addRow(g, ev, open){
+  if(!isAdmin && !(ev && open)) return "";
+  return `<div class="addrow"><input id="add-${g.id}" placeholder="Fehlt was? ${esc(g.ex)}" maxlength="60" aria-label="Eigene Zutat für ${esc(g.name)}" enterkeyhint="done">
+    ${isAdmin
+      ? `<button class="btn ghost small" data-add-grp="${g.id}" data-add-kind="vorrat">Ist da</button>${ev && open ? `<button class="btn ghost small" data-add-grp="${g.id}" data-add-kind="bedarf">Fehlt</button>` : ""}`
+      : `<button class="btn small" data-add-grp="${g.id}" data-add-kind="mitbringsel">+ Bringe ich</button>`}</div>`;
+}
+
 function zutatenCard(ev, open){
   PLAN = planFor(ev);
   const pool = [...items.filter(i => i.kind === "vorrat" && !i.event_id), ...(ev ? items.filter(i => i.event_id === ev.id) : [])];
@@ -577,19 +592,21 @@ function zutatenCard(ev, open){
   let totalMissing = 0, totalNeeded = 0;
   const groupsHtml = CATALOG.map(g => {
     const rows = g.items.map(e => ({ e, idx: CAT_FLAT.indexOf(e), st: entryState(e, pool) }));
+    for(const i of others.filter(o => g.cats.includes(o.category))) rows.push({ custom: i, e: { n: i.name + (i.qty && i.kind !== "vorrat" ? ` · ${i.qty}` : ""), i: CAT_ICON[i.category] || "🧺" }, idx: null, st: customState(i) });
     const missing = rows.filter(r => !r.st.covered || (g.multi && !r.st.mine && !isAdmin));
     const covered = rows.filter(r => r.st.covered);
     // Was fehlt: zuerst „wird gebraucht“, dann Basis, dann Rest
     const missRows = rows.filter(r => !r.st.covered).sort((a,b) => (!!b.st.need - !!a.st.need) || ((b.e.b||0) - (a.e.b||0)));
     const needed = rows.filter(r => r.st.need).length;
     totalNeeded += needed; totalMissing += rows.filter(r => !r.st.covered && r.e.b).length;
-    const row = r => itemRow({ icon:r.e.i, name:r.e.n, tip:r.e.t, basis:r.e.b, st:r.st, multi:g.multi, idx:r.idx, ev, open });
+    const row = r => itemRow({ icon:r.e.i, name:r.e.n, basis:r.e.b, st:r.st, multi:g.multi && !r.custom, idx:r.idx, ev, open, extra:r.custom });
     let body;
     if(g.multi){
-      body = `<p class="muted" style="margin:0 0 6px 36px">${esc(g.note)}</p><ul class="items">${rows.map(row).join("")}</ul>`;
+      body = `<p class="muted" style="margin:0 0 6px 36px">${esc(g.note)}</p><ul class="items">${rows.map(row).join("")}</ul>` + addRow(g, ev, open);
     } else {
       body = (missRows.length ? `<div class="sublabel">Fehlt noch</div><ul class="items">${missRows.map(row).join("")}</ul>` : "")
-           + (covered.length ? `<div class="sublabel">Ist abgedeckt</div><ul class="items">${covered.map(row).join("")}</ul>` : "");
+           + (covered.length ? `<div class="sublabel">Ist abgedeckt</div><ul class="items">${covered.map(row).join("")}</ul>` : "")
+           + addRow(g, ev, open);
     }
     const info = g.multi
       ? (() => { const n = rows.reduce((s,r)=>s + r.st.bring.length, 0); return n ? `${n}× zugesagt` : `<b>noch nichts</b>`; })()
@@ -602,24 +619,10 @@ function zutatenCard(ev, open){
       ${body}</details>`;
   }).join("");
 
-  const otherHtml = others.length ? `<details class="grp" data-key="g-other" ${isOpen("g-other", true) ? "open" : ""}>
-      <summary><span class="gi" aria-hidden="true">🧺</span><span class="gn">Weitere Einträge</span><span class="gs">${others.length}</span></summary>
-      <ul class="items">${others.map(i => {
-        const st = { hits:[i], have: i.kind==="vorrat" ? [i] : [], bring: (i.kind==="mitbringsel" || (i.kind==="bedarf" && i.person)) ? [i] : [],
-                     need: i.kind==="bedarf" && !i.person ? i : null, mine: tokens[i.id] && i.kind !== "vorrat" ? i : null };
-        st.covered = st.have.length || st.bring.length;
-        return itemRow({ icon: CAT_ICON[i.category] || "🧺", name: i.name + (i.qty && i.kind !== "vorrat" ? ` · ${i.qty}` : ""), st, idx:null, ev, open, extra:i });
-      }).join("")}</ul></details>` : "";
-
-  const custom = (open || isAdmin) ? `<details class="custom" data-key="custom" ${isOpen("custom", false) ? "open" : ""}>
-      <summary>+ Etwas anderes eintragen</summary>
-      <div class="mt"><input id="itName" placeholder="z. B. Ananas, Feigen, Trüffelöl …" maxlength="60" aria-label="Zutat"></div>
-      <div class="grid2 mt"><input id="itQty" placeholder="Menge (optional)" maxlength="30" aria-label="Menge">
-        <select id="itCat" aria-label="Kategorie">${CATS.map(c=>`<option>${esc(c)}</option>`).join("")}</select></div>
-      <div class="actions mt">${isAdmin
-        ? `<button class="btn green small" data-addadm="vorrat">Ist da (Vorrat)</button>${ev && open ? `<button class="btn small" data-addadm="bedarf">Fehlt noch</button>` : ""}`
-        : `<button class="btn green small" id="addItemBtn">Bringe ich mit</button>`}</div>
-    </details>` : "";
+  const stray = others.filter(i => !CATALOG.some(g => g.cats.includes(i.category)));
+  const otherHtml = stray.length ? `<details class="grp" data-key="g-other" ${isOpen("g-other", true) ? "open" : ""}>
+      <summary><span class="gi" aria-hidden="true">🧺</span><span class="gn">Weitere Einträge</span><span class="gs">${stray.length}</span></summary>
+      <ul class="items">${stray.map(i => itemRow({ icon: CAT_ICON[i.category] || "🧺", name: i.name + (i.qty && i.kind !== "vorrat" ? ` · ${i.qty}` : ""), st: customState(i), idx:null, ev, open, extra:i })).join("")}</ul></details>` : "";
 
   return `<div class="card">
     <div class="zhead"><h2>Zutaten</h2><span class="zsum">${PLAN ? `geplant für ${PLAN.people} ${PLAN.people === 1 ? "Person" : "Personen"}${PLAN.final ? "" : " (alle Plätze)"}` : "Tippe an, was du mitbringst"}</span></div>
@@ -630,7 +633,7 @@ function zutatenCard(ev, open){
         claimId ? `<button class="sug need" data-claim="${claimId}">${e.i} ${esc(e.n)}</button>` : `<button class="sug" data-cat-bring="${CAT_FLAT.indexOf(e)}">${e.i} ${esc(e.n)}</button>`).join("")}</div></div>` : ""}
     <details class="tip" data-key="tip" ${isOpen("tip", false) ? "open" : ""}><summary>💧 Tipp: Je trockener, desto besser ▾</summary>
       <p>Im heißen Ofen verdampft Wasser nicht schnell genug, der Boden wird matschig. Also lieber Pizza-Mozzarella am Stück als Kugeln aus der Lake (die gut abtropfen lassen), Dosenware abtropfen, Gemüse dünn schneiden. Frisches wie Rucola, Burrata oder Rohschinken erst nach dem Backen drauf.</p></details>
-    ${groupsHtml}${otherHtml}${custom}
+    ${groupsHtml}${otherHtml}
   </div>`;
 }
 
@@ -689,6 +692,17 @@ document.addEventListener("click", async (e) => {
   if(t.dataset.leave){ if(!confirm("Wirklich absagen?")) return;
     return act(async()=>{ await rpc("pz_leave",{p_id:t.dataset.leave,p_token:tokens[t.dataset.leave]}); dropToken(t.dataset.leave); }, "Abgesagt"); }
 
+  if(t.dataset.addGrp){
+    const g = CATALOG.find(x => x.id === t.dataset.addGrp), inp = document.getElementById("add-" + g.id);
+    const name = (inp?.value || "").trim(); if(!name){ inp?.focus(); return toast("Was möchtest du ergänzen?"); }
+    const kind = t.dataset.addKind, cat = g.cats[0];
+    if(kind === "mitbringsel"){
+      const n = needName(); if(!n) return;
+      const dup = similar(name, ev); if(dup && !confirm(`Gibt es schon: ${dup}. Trotzdem eintragen?`)) return;
+      return act(async()=>{ const r = await rpc("pz_add_item",{p_event:ev.id,p_name:name,p_category:cat,p_qty:"",p_person:n}); saveToken(r.id, r.token); }, `Danke! ${name} ist eingetragen`);
+    }
+    return act(()=>rpc("pz_admin_add_item",{p_key:adminKey,p_event:kind==="vorrat"?null:ev.id,p_kind:kind,p_name:name,p_category:cat,p_qty:""}), kind === "vorrat" ? `${name}: ist da` : `${name}: fehlt noch`);
+  }
   if(t.id === "addItemBtn"){ const n = needName(); if(!n) return;
     const name = document.getElementById("itName").value.trim(); if(!name) return toast("Was bringst du mit?");
     const dup = similar(name, ev); if(dup && !confirm(`Gibt es schon: ${dup}. Trotzdem eintragen?`)) return;
@@ -796,6 +810,11 @@ async function hostLogin(){
   try{ if(await rpc("pz_admin_check",{p_key:k.trim()})){ adminKey = k.trim(); ls.set("pz_admin", adminKey); isAdmin = true; toast("Gastgeber-Modus an"); load(true); }
        else toast("Schlüssel stimmt nicht"); }catch(e){ toast(e.message); }
 }
+
+// Enter in einem Hinzufügen-Feld löst den (ersten) Knopf daneben aus
+document.addEventListener("keydown", e => {
+  if(e.key === "Enter" && e.target.id?.startsWith("add-")){ e.preventDefault(); e.target.blur(); e.target.parentElement.querySelector("button")?.click(); }
+});
 
 // Name merken, während getippt wird
 document.addEventListener("input", e => { if(e.target.id === "nameInput"){ myName = e.target.value.trim(); ls.set("pz_name", myName); } });
