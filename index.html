@@ -40,6 +40,8 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:500 14px Inter,sans-serif;cursor:pointer}
 .chip.on{background:var(--tomato);border-color:var(--tomato);color:var(--tomato-ink)}
 .chip.past{opacity:.6}
+.when-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.when-row .btn{flex:0 0 auto;margin-top:4px}
 .when{font-family:Fraunces,Georgia,serif;font-size:26px;font-weight:800;margin:0}
 .time{color:var(--muted);margin:2px 0 10px}
 .notes{background:var(--cheese-soft);border-radius:12px;padding:10px 12px;margin:10px 0 0;white-space:pre-wrap;font-size:15px}
@@ -213,7 +215,7 @@ function render(){
 
   let html = `<div class="card">
     ${isPast(ev) ? '<span class="tag">vergangen</span>' : ev.closed ? '<span class="tag">Anmeldung geschlossen</span>' : ''}
-    <p class="when">${esc(fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'}))}</p>
+    <div class="when-row"><p class="when">${esc(fmtDate(ev.event_date,{weekday:'long',day:'numeric',month:'long'}))}</p>${isAdmin ? `<button class="btn ghost small" data-edit-ev="${ev.id}">✎ Bearbeiten</button>` : ""}</div>
     <p class="time">${esc(ev.event_time)} Uhr · ${esc(ev.title)}</p>
     <div class="seats"><div class="dots">${Array.from({length:ev.max_guests},(_,i)=>`<span class="dot ${i<confirmed.length?'full':''}"></span>`).join("")}</div>
       <span class="seats-txt">${free ? `${free} von ${ev.max_guests} Plätzen frei` : `Voll${waiting.length ? ` · ${waiting.length} auf Warteliste` : ' – Warteliste offen'}`}</span></div>
@@ -425,7 +427,7 @@ function adminEventCard(ev){
   return `<div class="card admin"><h2>Für diesen Termin</h2>
     <p class="muted">„Wird gebraucht“ können Gäste mit einem Klick übernehmen. „Ist da“ zeigt, was sie nicht kaufen müssen.</p>
     ${itemForm("ev")}
-    <button class="btn ghost small mt" id="editEvBtn" data-id="${ev.id}">Termin bearbeiten / schließen</button>
+    <button class="btn ghost small mt" data-edit-ev="${ev.id}">Termin bearbeiten / schließen</button>
   </div>`;
 }
 function vorratCard(ev){
@@ -489,7 +491,7 @@ document.addEventListener("click", async (e) => {
   // Gastgeber
   if(t.id === "logoutBtn"){ isAdmin = false; adminKey = ""; ls.set("pz_admin",""); editing = false; return load(); }
   if(t.id === "newEvBtn"){ editing = "new"; return render(); }
-  if(t.id === "editEvBtn"){ editing = t.dataset.id; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(t.dataset.editEv){ editing = t.dataset.editEv; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
   if(t.id === "cancelEvBtn"){ editing = false; return render(); }
   if(t.id === "saveEvBtn"){
     const id = t.dataset.id || null; const date = document.getElementById("fDate").value; if(!date) return toast("Datum fehlt");
