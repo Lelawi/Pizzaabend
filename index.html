@@ -53,6 +53,10 @@ h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:20px;margin:0}
 .when{font-family:Fraunces,Georgia,serif;font-size:24px;font-weight:800;margin:0;line-height:1.15}
 .time{color:var(--muted);margin:2px 0 0;font-size:15px}
 .host{margin:6px 0 0;font-size:15px;font-weight:600;color:var(--crust)}
+.guests{margin:4px 0 0;font-size:15px;line-height:1.5}
+.gname{white-space:nowrap}
+.gname.me{color:var(--basil);font-weight:600}
+.gname .x{font-size:16px;padding:0 2px;vertical-align:-1px}
 .seats{display:flex;align-items:center;gap:10px;margin:12px 0 0;flex-wrap:wrap}
 .dots{display:flex;flex-wrap:wrap;gap:4px}
 .dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
@@ -362,7 +366,8 @@ function eventCard(ev){
   const veg = confirmed.filter(g => g.diet).length;
   const cd = countdown(ev);
 
-  const pill = (g, wait) => `<span class="pill ${tokens[g.id]?'me':''} ${wait?'wait':''}">${g.diet ? DIET[g.diet] + " " : ""}${esc(g.name)}${g.plus ? ` +${g.plus}` : ""}${tokens[g.id]?' (du)':''}${isAdmin ? `<button class="x" aria-label="${esc(g.name)} entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</span>`;
+  const gname = g => `<span class="gname ${tokens[g.id] ? "me" : ""}">${esc(g.name)}${g.plus ? ` +${g.plus}` : ""}${g.diet ? " " + DIET[g.diet] : ""}${tokens[g.id] ? " (du)" : ""}${isAdmin ? `<button class="x" aria-label="${esc(g.name)} entfernen" data-adm="signup" data-id="${g.id}">×</button>` : ""}</span>`;
+  const guestLine = `<p class="guests">👥 Gäste: ${confirmed.length ? confirmed.map(gname).join(", ") : `<span class="muted">noch niemand</span>`}${waiting.length ? ` <span class="muted">· Warteliste:</span> ${waiting.map(gname).join(", ")}` : ""}</p>`;
 
   return `<div class="card">
     ${isPast(ev) ? '<span class="pill" style="margin-bottom:8px">vergangen</span>' : ev.closed ? '<span class="pill" style="margin-bottom:8px">Anmeldung geschlossen</span>' : ''}
@@ -372,6 +377,7 @@ function eventCard(ev){
       ${ev.host ? `<p class="host">🧑‍🍳 Gastgeber: ${esc(ev.host)}</p>` : ""}</div>
       ${isAdmin ? `<button class="btn ghost small" data-edit-ev="${ev.id}">✎ Bearbeiten</button>` : ""}
     </div>
+    ${guestLine}
     <div class="seats"><div class="dots">${Array.from({length:ev.max_guests},(_,i)=>`<span class="dot ${i<used?'full':''}"></span>`).join("")}</div>
       <span class="seats-txt">${free ? `${free} von ${ev.max_guests} Plätzen frei` : `Voll${waiting.length ? ` · ${waiting.length} auf Warteliste` : ' · Warteliste offen'}`}${veg ? ` · ${veg}× veggie` : ""}</span></div>
     ${ev.notes ? `<p class="notes">${esc(ev.notes)}</p>` : ""}
@@ -382,7 +388,6 @@ function eventCard(ev){
           <div><label for="nameInput">Dein Name</label><input id="nameInput" placeholder="z. B. Anna" value="${esc(myName)}" autocomplete="given-name" maxlength="40"></div>
           <button class="btn shrink" id="joinBtn">${free > joinPlus ? "Ich bin dabei" : "Auf Warteliste"}</button>
         </div>${optChips(joinPlus, joinDiet, "join")}` : ""}
-    ${confirmed.length || waiting.length ? `<div class="pills">${confirmed.map(g => pill(g,false)).join("")}${waiting.length ? `<span class="wait-label">Warteliste:</span>${waiting.map(g => pill(g,true)).join("")}` : ""}</div>` : `<p class="hint">Noch niemand angemeldet.</p>`}
     <div class="actions mt">
       ${!isPast(ev) ? `<button class="btn ghost small" id="calBtn">📅 In den Kalender</button>` : ""}
       ${isAdmin ? `<button class="btn ghost small" id="waBtn">In WhatsApp teilen</button><button class="btn ghost small" id="copyBtn">Link kopieren</button>` : ""}
